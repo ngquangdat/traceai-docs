@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TraceAI — Runtime Architecture",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "analysis-path",
+        "label": "Analysis request path",
+        "focus": [
+          "users",
+          "spa",
+          "api",
+          "agent"
+        ],
+        "note": "One engineer request travels from the browser to the LangGraph agent loop."
+      },
+      {
+        "id": "evidence-sources",
+        "label": "Cross-stack evidence",
+        "focus": [
+          "agent",
+          "kibana",
+          "sentry",
+          "matomo",
+          "bitbucket"
+        ],
+        "note": "The agent pulls evidence from four production systems with the caller's own tokens."
+      },
+      {
+        "id": "privacy-boundary",
+        "label": "Privacy boundary",
+        "focus": [
+          "agent",
+          "pii",
+          "bedrock",
+          "pg"
+        ],
+        "note": "Every model call passes the masking wrapper before leaving for Bedrock."
+      }
+    ],
+    "visual_preset": "signal-flow",
+    "animation": "trace",
+    "viewBox": [
+      1350,
+      665
+    ]
+  },
+  "components": [
+    {
+      "id": "users",
+      "type": "external",
+      "label": "Engineer / Support",
+      "sublabel": "Dev + Support modes",
+      "pos": [
+        40,
+        245
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "sso",
+      "type": "security",
+      "label": "Entra ID",
+      "sublabel": "MSAL + JWT",
+      "pos": [
+        240,
+        105
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "role-gated",
+      "brand": {
+        "url": "https://www.microsoft.com/",
+        "sha256": "90cdaf487716184e4034000935c605d1633926d348116d198f355a98b8c6cd21"
+      }
+    },
+    {
+      "id": "spa",
+      "type": "frontend",
+      "label": "TraceAI Web",
+      "sublabel": "React 19 + Vite",
+      "pos": [
+        240,
+        245
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "brand": "react"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI",
+      "sublabel": "/analyze · /chat",
+      "pos": [
+        470,
+        245
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "brand": "fastapi"
+    },
+    {
+      "id": "agent",
+      "type": "backend",
+      "label": "AIAnalyzer",
+      "sublabel": "LangGraph agent loop",
+      "pos": [
+        700,
+        235
+      ],
+      "size": [
+        170,
+        84
+      ],
+      "tag": "tool budget",
+      "brand": {
+        "url": "https://docs.langchain.com/mintlify-assets/_mintlify/favicons/langchain-5e9cc07a/YSQua9Gt91yRswvJ/_generated/favicon/favicon-32x32.png",
+        "sha256": "c4be39cb0b0cb395fb73e90811cdbcce9fd78ca72a295923ad5724ab052797ce"
+      }
+    },
+    {
+      "id": "pg",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "checkpoints · reports",
+      "pos": [
+        700,
+        105
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "brand": "postgresql"
+    },
+    {
+      "id": "pii",
+      "type": "security",
+      "label": "PIIMaskingLLM",
+      "sublabel": "Presidio + spaCy",
+      "pos": [
+        700,
+        405
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "bedrock",
+      "type": "cloud",
+      "label": "AWS Bedrock",
+      "sublabel": "Claude, in-region",
+      "pos": [
+        700,
+        520
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "brand": {
+        "url": "https://aws.amazon.com/favicon.ico",
+        "sha256": "4f56a75f3860c7136ab3a07347e57a7ef06dd84d324d19af0dac6b5f3268e023"
+      }
+    },
+    {
+      "id": "kibana",
+      "type": "external",
+      "label": "Kibana / Elastic",
+      "sublabel": "logs + APM spans",
+      "pos": [
+        1140,
+        100
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "brand": "elasticsearch"
+    },
+    {
+      "id": "sentry",
+      "type": "external",
+      "label": "Sentry",
+      "sublabel": "frontend errors",
+      "pos": [
+        1140,
+        220
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "brand": "sentry"
+    },
+    {
+      "id": "matomo",
+      "type": "external",
+      "label": "Matomo",
+      "sublabel": "user behaviour",
+      "pos": [
+        1140,
+        340
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "brand": {
+        "url": "https://matomo.org/favicon.ico",
+        "sha256": "746d84e309b2227616c9782bcd8c4ef16e1a949d20e7e0c6b38ea302b20112f1"
+      }
+    },
+    {
+      "id": "bitbucket",
+      "type": "external",
+      "label": "Bitbucket",
+      "sublabel": "source · commits · PR",
+      "pos": [
+        1140,
+        460
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "brand": "bitbucket"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "TCBS cloud boundary — no third-party SaaS sees logs or code",
+      "wraps": [
+        "api",
+        "agent",
+        "pg",
+        "pii",
+        "bedrock"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "PII masked before the model",
+      "wraps": [
+        "pii",
+        "bedrock"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "user-opens-app",
+      "from": "users",
+      "to": "spa",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sso-guard",
+      "from": "sso",
+      "to": "api",
+      "label": "JWT + role",
+      "variant": "security",
+      "toSide": "top",
+      "via": [
+        [
+          545,
+          137
+        ]
+      ]
+    },
+    {
+      "id": "spa-calls-api",
+      "from": "spa",
+      "to": "api",
+      "label": "REST",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-dispatch",
+      "from": "api",
+      "to": "agent",
+      "label": "dispatch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "agent-state",
+      "from": "agent",
+      "to": "pg",
+      "label": "checkpoint state"
+    },
+    {
+      "id": "agent-masks",
+      "from": "agent",
+      "to": "pii",
+      "label": "every LLM call",
+      "variant": "security",
+      "labelAt": [
+        785,
+        367
+      ]
+    },
+    {
+      "id": "pii-bedrock",
+      "from": "pii",
+      "to": "bedrock",
+      "label": "mask out · unmask back",
+      "variant": "security",
+      "labelAt": [
+        785,
+        494
+      ]
+    },
+    {
+      "id": "agent-kibana",
+      "from": "agent",
+      "to": "kibana",
+      "label": "trace-ID search",
+      "labelAt": [
+        1072,
+        132
+      ]
+    },
+    {
+      "id": "agent-sentry",
+      "from": "agent",
+      "to": "sentry",
+      "label": "issue detail",
+      "labelAt": [
+        1072,
+        252
+      ]
+    },
+    {
+      "id": "agent-matomo",
+      "from": "agent",
+      "to": "matomo",
+      "label": "affected users",
+      "labelAt": [
+        1072,
+        372
+      ]
+    },
+    {
+      "id": "agent-bitbucket",
+      "from": "agent",
+      "to": "bitbucket",
+      "label": "read code · open PR",
+      "labelAt": [
+        1072,
+        492
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Cross-stack evidence",
+      "items": [
+        "Four production systems stitched by distributed trace ID",
+        "Sentry additional_data bridges a frontend event to its backend trace",
+        "tree-sitter code graph resolves callers and callees"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Agent control",
+      "items": [
+        "Plan → call tools → verify → structured report",
+        "Iteration budget, then a forced-final step with tools disabled",
+        "Pydantic-validated JSON; every claim cites a log line or file:line"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Security posture",
+      "items": [
+        "Agent runs on the caller's own tokens, AES-256-GCM at rest",
+        "No shared super-token exists anywhere in the system",
+        "Read-only by default; Auto Fix opens a draft PR humans merge"
+      ]
+    }
+  ]
+}

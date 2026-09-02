@@ -1,0 +1,249 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Auto Fix — Recommendation to Reviewable Pull Request",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "happy-path",
+        "label": "Detection to PR",
+        "focus": [
+          "report",
+          "select",
+          "draft",
+          "branch",
+          "commit",
+          "pr"
+        ],
+        "note": "The engineer chooses which recommendations become code; TraceAI writes the rest."
+      },
+      {
+        "id": "human-control",
+        "label": "Where humans stay in control",
+        "focus": [
+          "guard",
+          "select",
+          "review"
+        ],
+        "note": "Two human gates surround the only write path the system has."
+      }
+    ],
+    "visual_preset": "signal-flow",
+    "animation": "trace"
+  },
+  "lanes": [
+    {
+      "id": "ui",
+      "label": "Engineer"
+    },
+    {
+      "id": "traceai",
+      "label": "TraceAI"
+    },
+    {
+      "id": "policy",
+      "label": "Human control",
+      "variant": "exception"
+    },
+    {
+      "id": "scm",
+      "label": "Bitbucket"
+    }
+  ],
+  "phases": [
+    {
+      "id": "decide",
+      "label": "Decide",
+      "fromCol": 0,
+      "toCol": 1
+    },
+    {
+      "id": "author",
+      "label": "Author the change",
+      "fromCol": 2,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "handover",
+      "label": "Hand back to humans",
+      "fromCol": 4,
+      "toCol": 5,
+      "variant": "security"
+    }
+  ],
+  "groups": [
+    {
+      "id": "write_path",
+      "label": "The only write path in the system",
+      "lane": "scm",
+      "fromCol": 3,
+      "toCol": 5,
+      "variant": "security"
+    }
+  ],
+  "mainPath": [
+    "report",
+    "select",
+    "draft",
+    "branch",
+    "commit",
+    "pr"
+  ],
+  "nodes": [
+    {
+      "id": "report",
+      "lane": "traceai",
+      "col": 0,
+      "type": "backend",
+      "label": "Analysis report",
+      "sublabel": "root cause + fixes",
+      "width": 226,
+      "height": 62
+    },
+    {
+      "id": "select",
+      "lane": "ui",
+      "col": 1,
+      "type": "frontend",
+      "label": "Engineer selects",
+      "sublabel": "which fixes apply",
+      "tag": "human gate 1",
+      "width": 226,
+      "height": 62
+    },
+    {
+      "id": "draft",
+      "lane": "traceai",
+      "col": 2,
+      "type": "backend",
+      "label": "Draft the patch",
+      "sublabel": "from cited code",
+      "width": 226,
+      "height": 62
+    },
+    {
+      "id": "guard",
+      "lane": "policy",
+      "col": 2,
+      "type": "security",
+      "label": "Write gate",
+      "sublabel": "read-only otherwise",
+      "tag": "opt-in",
+      "width": 226,
+      "height": 62
+    },
+    {
+      "id": "branch",
+      "lane": "scm",
+      "col": 3,
+      "type": "cloud",
+      "label": "Create branch",
+      "sublabel": "one per fix",
+      "width": 226,
+      "height": 62
+    },
+    {
+      "id": "commit",
+      "lane": "scm",
+      "col": 4,
+      "type": "cloud",
+      "label": "Commit",
+      "sublabel": "scoped diff",
+      "width": 226,
+      "height": 62
+    },
+    {
+      "id": "pr",
+      "lane": "scm",
+      "col": 5,
+      "type": "cloud",
+      "label": "Pull request",
+      "sublabel": "draft, not merged",
+      "width": 226,
+      "height": 62
+    },
+    {
+      "id": "review",
+      "lane": "policy",
+      "col": 5,
+      "type": "security",
+      "label": "Human review",
+      "sublabel": "merge stays human",
+      "tag": "human gate 2",
+      "width": 226,
+      "height": 62
+    }
+  ],
+  "edges": [
+    {
+      "id": "report-select",
+      "from": "report",
+      "to": "select",
+      "label": "recommendations",
+      "variant": "default"
+    },
+    {
+      "id": "select-draft",
+      "from": "select",
+      "to": "draft",
+      "label": "chosen fixes",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gate-check",
+      "from": "guard",
+      "to": "draft",
+      "label": "explicit action",
+      "variant": "security"
+    },
+    {
+      "id": "draft-branch",
+      "from": "draft",
+      "to": "branch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "branch-commit",
+      "from": "branch",
+      "to": "commit",
+      "variant": "default"
+    },
+    {
+      "id": "commit-pr",
+      "from": "commit",
+      "to": "pr",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pr-review",
+      "from": "pr",
+      "to": "review",
+      "label": "no auto-merge",
+      "variant": "security",
+      "role": "branch"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "About two minutes",
+      "items": [
+        "Branch, commit and pull request are created in one call chain",
+        "The diff is scoped to the files the analysis actually cited",
+        "Detection to reviewable fix collapses from hours or days"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Two human gates",
+      "items": [
+        "Nothing is drafted until an engineer selects a recommendation",
+        "Nothing is merged without a human reviewer",
+        "Everywhere else the agent is strictly read-only"
+      ]
+    }
+  ]
+}

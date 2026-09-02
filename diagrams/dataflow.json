@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "PII Never Reaches the Model — Masking Boundary",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "sources",
+        "label": "What arrives",
+        "focus": [
+          "logs",
+          "sentry",
+          "mask"
+        ],
+        "note": "Production log lines and customer records arrive exactly as they were written."
+      },
+      {
+        "id": "boundary",
+        "label": "The masking boundary",
+        "focus": [
+          "mask",
+          "mapping",
+          "bedrock"
+        ],
+        "note": "Detection runs before the call; only placeholders cross into the model."
+      },
+      {
+        "id": "return",
+        "label": "Restoring for the user",
+        "focus": [
+          "bedrock",
+          "unmask",
+          "user",
+          "report"
+        ],
+        "note": "Originals are restored in-process for the authorised user only."
+      }
+    ],
+    "viewBox": [
+      1080,
+      555
+    ],
+    "visual_preset": "signal-flow",
+    "animation": "trace"
+  },
+  "stages": [
+    {
+      "label": "Evidence"
+    },
+    {
+      "label": "Mask"
+    },
+    {
+      "label": "Model"
+    },
+    {
+      "label": "Unmask"
+    },
+    {
+      "label": "Delivered"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "logs",
+      "type": "database",
+      "label": "Kibana / APM",
+      "sublabel": "raw log lines",
+      "stage": 0,
+      "row": 0,
+      "tag": "PII present",
+      "brand": "elasticsearch"
+    },
+    {
+      "id": "sentry",
+      "type": "external",
+      "label": "Sentry / Matomo",
+      "sublabel": "customer records",
+      "stage": 0,
+      "row": 2,
+      "tag": "PII present"
+    },
+    {
+      "id": "mask",
+      "type": "security",
+      "label": "PIIMaskingLLM",
+      "sublabel": "Presidio + spaCy",
+      "stage": 1,
+      "row": 1,
+      "tag": "mask"
+    },
+    {
+      "id": "mapping",
+      "type": "database",
+      "label": "Placeholder map",
+      "sublabel": "in-process memory",
+      "stage": 2,
+      "row": 2,
+      "tag": "never persisted"
+    },
+    {
+      "id": "bedrock",
+      "type": "cloud",
+      "label": "AWS Bedrock",
+      "sublabel": "Claude, in-region",
+      "stage": 2,
+      "row": 1,
+      "tag": "no training",
+      "brand": {
+        "url": "https://aws.amazon.com/favicon.ico",
+        "sha256": "4f56a75f3860c7136ab3a07347e57a7ef06dd84d324d19af0dac6b5f3268e023"
+      }
+    },
+    {
+      "id": "unmask",
+      "type": "security",
+      "label": "Unmask",
+      "sublabel": "restore originals",
+      "stage": 3,
+      "row": 1,
+      "tag": "unmask"
+    },
+    {
+      "id": "user",
+      "type": "external",
+      "label": "Authorised user",
+      "sublabel": "Dev or Support",
+      "stage": 4,
+      "row": 0,
+      "tag": "real values"
+    },
+    {
+      "id": "report",
+      "type": "database",
+      "label": "Stored report",
+      "sublabel": "PostgreSQL",
+      "stage": 4,
+      "row": 2,
+      "tag": "searchable",
+      "brand": "postgresql"
+    }
+  ],
+  "flows": [
+    {
+      "id": "logs-in",
+      "from": "logs",
+      "to": "mask",
+      "label": "raw log lines",
+      "classification": "unmasked",
+      "variant": "emphasis"
+    },
+    {
+      "id": "records-in",
+      "from": "sentry",
+      "to": "mask",
+      "label": "customer records",
+      "classification": "unmasked",
+      "variant": "default"
+    },
+    {
+      "id": "keep-map",
+      "from": "mask",
+      "to": "mapping",
+      "label": "keep map",
+      "classification": "in-process",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          315,
+          385
+        ]
+      ]
+    },
+    {
+      "id": "masked-prompt",
+      "from": "mask",
+      "to": "bedrock",
+      "label": "masked prompt",
+      "classification": "no PII",
+      "variant": "security",
+      "route": "straight"
+    },
+    {
+      "id": "model-reply",
+      "from": "bedrock",
+      "to": "unmask",
+      "label": "reply",
+      "classification": "still masked",
+      "variant": "security",
+      "route": "straight"
+    },
+    {
+      "id": "restore",
+      "from": "mapping",
+      "to": "unmask",
+      "label": "restore",
+      "classification": "in-process",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [
+        [
+          745,
+          385
+        ]
+      ]
+    },
+    {
+      "id": "to-user",
+      "from": "unmask",
+      "to": "user",
+      "label": "real values",
+      "classification": "role-gated",
+      "variant": "emphasis"
+    },
+    {
+      "id": "to-report",
+      "from": "unmask",
+      "to": "report",
+      "label": "analysis record",
+      "classification": "audited",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Detected entities",
+      "items": [
+        "CCCD 12 digits, CMND 9 digits, phone, bank and securities accounts",
+        "Vietnamese names made NER-detectable by stripping diacritics first",
+        "Custom recognizers for TCBS identifiers sit beside Presidio defaults"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Where the real data lives",
+      "items": [
+        "The placeholder map exists only in process memory",
+        "It is never written to disk, logs, or the model request",
+        "Restoration happens after the response returns, for that caller only"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Why this matters here",
+      "items": [
+        "A bank cannot send customer identifiers to a model provider",
+        "Bedrock runs in-region inside our own AWS account",
+        "Anthropic and AWS do not train on this traffic"
+      ]
+    }
+  ]
+}

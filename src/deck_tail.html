@@ -1,0 +1,536 @@
+<script type="text/plain" id="dg-manual">__PAYLOAD_MANUAL__</script>
+<script type="text/plain" id="dg-architecture">__PAYLOAD_ARCHITECTURE__</script>
+<script type="text/plain" id="dg-sequence">__PAYLOAD_SEQUENCE__</script>
+<script type="text/plain" id="dg-dataflow">__PAYLOAD_DATAFLOW__</script>
+<script>
+(function(){
+  "use strict";
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total  = slides.length;
+  var idx    = 0;
+  var lang   = 'vi';
+
+  /* ---------- i18n ---------- */
+  var i18nNodes = Array.prototype.slice.call(document.querySelectorAll('[data-vi],[data-en]'))
+    .filter(function(el){ return el.children.length === 0; });
+
+  function applyLang(){
+    document.documentElement.lang = lang;
+    i18nNodes.forEach(function(el){
+      var v = el.getAttribute('data-' + lang);
+      if (v !== null) el.textContent = v;
+    });
+    document.getElementById('lang-vi').setAttribute('aria-pressed', String(lang === 'vi'));
+    document.getElementById('lang-en').setAttribute('aria-pressed', String(lang === 'en'));
+    buildToc();
+    if (window.recalcCost) window.recalcCost();
+    try { localStorage.setItem('traceai-lang', lang); } catch(e){}
+  }
+  function setLang(next){ if (next === lang) return; lang = next; applyLang(); }
+  document.getElementById('lang-vi').onclick = function(){ setLang('vi'); };
+  document.getElementById('lang-en').onclick = function(){ setLang('en'); };
+
+  /* ---------- table of contents ---------- */
+  var tocList = document.getElementById('toc-list');
+  var toc     = document.getElementById('toc');
+  function buildToc(){
+    tocList.innerHTML = '';
+    slides.forEach(function(s, i){
+      var li = document.createElement('li');
+      var b  = document.createElement('button');
+      b.innerHTML = '<span class="i">' + String(i + 1).padStart(2, '0') + '</span><span></span>';
+      b.lastChild.textContent = s.getAttribute('data-title-' + lang) || '';
+      b.setAttribute('aria-current', String(i === idx));
+      b.onclick = function(){ go(i); closeToc(); };
+      li.appendChild(b); tocList.appendChild(li);
+    });
+  }
+  function openToc(){ toc.classList.add('on'); toc.setAttribute('aria-hidden','false'); buildToc(); }
+  function closeToc(){ toc.classList.remove('on'); toc.setAttribute('aria-hidden','true'); }
+  function toggleToc(){ toc.classList.contains('on') ? closeToc() : openToc(); }
+  document.getElementById('toc-btn').onclick = toggleToc;
+  toc.onclick = function(e){ if (e.target === toc) closeToc(); };
+
+  /* ---------- diagrams ---------- */
+  var hasGunzip = typeof DecompressionStream === 'function';
+  function gunzipB64(b64){
+    var bin = atob(b64.trim());
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return new Response(stream).text();
+  }
+  // On a slide the artifact shows the diagram surface alone. Everything hidden
+  // here is scoped to presentation mode, so "Full view" (present off) restores
+  // the toolbar, guided views, nav dock and cards untouched. Deliberately not
+  // Archify's own embed mode: that one also kills the relationship hit overlay
+  // and all trace motion, which is exactly the hover behaviour we want kept.
+  var P = 'html[data-present="true"] ';
+  var VIEWER_CSS =
+    'html{scrollbar-width:none}html::-webkit-scrollbar{display:none}' +
+    '.intent-trace-flow,.relationship-flow-pulse,.relationship-flow-token,.story-flow-token' +
+    '{animation-iteration-count:infinite!important}' +
+    P + '.toolbar,' + P + '.header,' + P + '#guided-views,' + P + '.cards,' +
+    P + '.diagram-nav,' + P + '.overview-map,' + P + '.focus-chip' +
+    '{display:none!important}' +
+    'html[data-present="true"]{--archify-nav-reserve:0px}' +
+    P + 'body{padding:0!important}' +
+    P + '.container{height:100dvh!important;gap:0!important}' +
+    P + '.diagram-container{padding:10px!important;border:0!important;' +
+    'box-shadow:none!important;border-radius:0!important}' +
+    P + '[data-legend]{display:none!important}';
+
+  // Any <title> inside the SVG becomes a native browser tooltip, including the
+  // diagram's own accessible name. Move that name onto aria-label first, then
+  // remove every title so nothing hovers.
+  function adoptDiagramName(d){
+    var svg = d.querySelector('.diagram-container svg') || d.querySelector('svg');
+    var t = d.getElementById('archify-diagram-title');
+    if (!svg || !t) return;
+    svg.setAttribute('aria-label', t.textContent || '');
+    svg.removeAttribute('aria-labelledby');
+  }
+  function stripTitles(root){
+    var list = root.querySelectorAll ? root.querySelectorAll('title') : [];
+    Array.prototype.forEach.call(list, function(t){
+      if (t.parentNode) t.parentNode.removeChild(t);
+    });
+  }
+  function enhanceDiagram(f){
+    try {
+      var d = f.contentDocument;
+      var st = d.createElement('style');
+      st.textContent = VIEWER_CSS;
+      d.head.appendChild(st);
+      adoptDiagramName(d);
+      stripTitles(d.body);
+      new MutationObserver(function(muts){
+        for (var i = 0; i < muts.length; i++){
+          var added = muts[i].addedNodes;
+          for (var j = 0; j < added.length; j++){
+            var n = added[j];
+            if (!n || n.nodeType !== 1) continue;
+            if (n.tagName && n.tagName.toLowerCase() === 'title'){
+              if (n.parentNode) n.parentNode.removeChild(n);
+            } else {
+              stripTitles(n);
+            }
+          }
+        }
+      }).observe(d.body, { childList: true, subtree: true });
+      bindHoverTrace(f);
+      loopAmbient(f);
+    } catch(e){}
+  }
+  // Archify plays its entrance trace once and then settles, by design. Replay it
+  // a fixed number of times with a 2s pause between passes, then leave the diagram
+  // still. The CSS is gated purely on data-ambient-motion="running", and a pass is
+  // finished when every animated element has reported animationend — the same
+  // signal Archify itself waits on. A pass only counts while the slide is on
+  // screen, so a diagram preloaded behind another slide does not burn its three.
+  var AMBIENT_GAP = 2000, AMBIENT_MAX = 9000, AMBIENT_PASSES = 3;
+  function loopAmbient(f){
+    try {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    } catch(e){}
+    var d = f.contentDocument, html = d.documentElement;
+    var svg = d.querySelector('.diagram-container svg');
+    if (!svg || svg.getAttribute('data-animation') !== 'trace') return;
+    var left = 0, gapTimer = null, guardTimer = null;
+    function stop(){
+      clearTimeout(gapTimer); clearTimeout(guardTimer);
+      gapTimer = null; guardTimer = null; left = 0;
+    }
+    function schedule(){
+      clearTimeout(gapTimer);
+      gapTimer = setTimeout(pass, AMBIENT_GAP);
+    }
+    function pass(){
+      if (left <= 0){ stop(); return; }
+      var box = f.getBoundingClientRect();
+      if (!box.width || !box.height || html.getAttribute('data-motion') === 'still'){
+        schedule();
+        return;
+      }
+      var list = svg.querySelectorAll('[data-animate="edge"], [data-animate="node"]');
+      if (!list.length){ stop(); return; }
+      var pending = {}, remaining = list.length;
+      Array.prototype.forEach.call(list, function(el, i){ el.__ambIdx = i; pending[i] = true; });
+      function finish(){
+        clearTimeout(guardTimer);
+        svg.removeEventListener('animationend', onEnd, true);
+        svg.removeEventListener('animationcancel', onEnd, true);
+        html.setAttribute('data-ambient-motion', 'settled');
+        html.setAttribute('data-ambient-settle-reason', 'complete');
+        left -= 1;
+        if (left > 0) schedule(); else stop();
+      }
+      function onEnd(e){
+        var i = e.target && e.target.__ambIdx;
+        if (i === undefined || !pending[i]) return;
+        delete pending[i];
+        if (--remaining <= 0) finish();
+      }
+      svg.addEventListener('animationend', onEnd, true);
+      svg.addEventListener('animationcancel', onEnd, true);
+      html.setAttribute('data-ambient-motion', 'running');
+      html.removeAttribute('data-ambient-settle-reason');
+      guardTimer = setTimeout(finish, AMBIENT_MAX);
+    }
+    function start(){ stop(); left = AMBIENT_PASSES; schedule(); }
+    f.__ambient = { start: start, stop: stop };
+    start();
+  }
+  // Entering a diagram slide re-arms its three passes; leaving parks the others.
+  function armAmbient(slide){
+    Array.prototype.forEach.call(document.querySelectorAll('.diagram-wrap iframe'), function(fr){
+      if (fr.__ambient) fr.__ambient.stop();
+    });
+    var f = slide.querySelector('.diagram-wrap iframe');
+    if (f && f.__ambient) f.__ambient.start();
+  }
+  // Archify only previews a node's reach on pointerover behind a fine-pointer
+  // gate. Bind the same public API to mouseover so the looping trace is
+  // reliable in the deck, and clear it when the pointer leaves the node.
+  function bindHoverTrace(f){
+    try {
+      var w = f.contentWindow, d = f.contentDocument;
+      var svg = d.querySelector('.diagram-container svg') || d.querySelector('svg');
+      var api = w.Archify && w.Archify.intentTrace;
+      if (!svg || !api || typeof api.show !== 'function') return;
+      svg.addEventListener('mouseover', function(e){
+        var n = e.target.closest && e.target.closest('[data-node-id]');
+        if (!n) return;
+        var id = n.getAttribute('data-node-id');
+        try {
+          var current = typeof api.active === 'function' ? api.active() : null;
+          if (current === id) return;
+          api.show(id, {});
+        } catch(_){}
+      });
+      svg.addEventListener('mouseout', function(e){
+        var to = e.relatedTarget;
+        if (to && to.closest && to.closest('[data-node-id]')) return;
+        try { api.clear({}); } catch(_){}
+      });
+    } catch(e){}
+  }
+  // Archify's viewBox carries generous padding around the artwork. On a slide
+  // that padding is dead space, so retarget the viewBox at the measured ink
+  // bounds. Needs a laid-out (visible) frame, hence the retry from go().
+  function tightenViewBox(f){
+    try {
+      var d = f.contentDocument;
+      var svg = d.querySelector('.diagram-container svg');
+      if (!svg || svg.dataset.tightened) return false;
+      var vb = (svg.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+      if (vb.length !== 4 || !vb[2] || !vb[3]) return false;
+      var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, found = false;
+      Array.prototype.forEach.call(svg.children, function(c){
+        var tag = (c.tagName || '').toLowerCase();
+        if (tag === 'defs' || tag === 'desc' || tag === 'title' || tag === 'style') return;
+        var b;
+        try { b = c.getBBox(); } catch(e){ return; }
+        if (!b || (!b.width && !b.height)) return;
+        if (b.width >= vb[2] - 1 && b.height >= vb[3] - 1) return; // full-bleed backdrop
+        found = true;
+        if (b.x < minX) minX = b.x;
+        if (b.y < minY) minY = b.y;
+        if (b.x + b.width > maxX) maxX = b.x + b.width;
+        if (b.y + b.height > maxY) maxY = b.y + b.height;
+      });
+      if (!found || !isFinite(minX) || maxX - minX < 40 || maxY - minY < 40) return false;
+      var pad = 10;
+      var x = Math.max(vb[0], minX - pad), y = Math.max(vb[1], minY - pad);
+      var x2 = Math.min(vb[0] + vb[2], maxX + pad), y2 = Math.min(vb[1] + vb[3], maxY + pad);
+      svg.setAttribute('viewBox', x + ' ' + y + ' ' + (x2 - x) + ' ' + (y2 - y));
+      svg.dataset.inkW = (x2 - x);
+      svg.dataset.inkH = (y2 - y);
+      svg.dataset.tightened = '1';
+      sizeToInk(svg);
+      return true;
+    } catch(e){}
+    return false;
+  }
+  // Render every diagram at 1 viewBox unit = 1 CSS pixel so type is the same
+  // size on every slide, and only scale down when a diagram is larger than the
+  // frame. Without this each diagram picks its own fit scale and the deck ends
+  // up with five different text sizes.
+  function sizeToInk(svg){
+    var inkW = Number(svg.dataset.inkW || 0), inkH = Number(svg.dataset.inkH || 0);
+    if (!inkW || !inkH) return;
+    var box = svg.parentNode && svg.parentNode.getBoundingClientRect();
+    if (!box || !box.width || !box.height) return;
+    var s = Math.min(1, box.width / inkW, box.height / inkH);
+    svg.style.flex = '0 0 auto';
+    svg.style.width = Math.round(inkW * s) + 'px';
+    svg.style.height = Math.round(inkH * s) + 'px';
+  }
+  function sizeAllFrames(){
+    Array.prototype.forEach.call(document.querySelectorAll('.diagram-wrap iframe'), function(f){
+      try {
+        var svg = f.contentDocument.querySelector('.diagram-container svg');
+        if (svg && svg.dataset.tightened) sizeToInk(svg);
+      } catch(e){}
+    });
+  }
+  function clearInkSize(){
+    Array.prototype.forEach.call(document.querySelectorAll('.diagram-wrap iframe'), function(f){
+      try {
+        var svg = f.contentDocument.querySelector('.diagram-container svg');
+        if (svg){ svg.style.width = ''; svg.style.height = ''; svg.style.flex = ''; }
+      } catch(e){}
+    });
+  }
+  window.addEventListener('resize', sizeAllFrames);
+
+  function tightenCurrent(){
+    var w = document.querySelector('.slide.on .diagram-wrap');
+    if (!w) return;
+    var f = w.querySelector('iframe');
+    if (f) tightenViewBox(f);
+  }
+  function tightenSoon(){
+    requestAnimationFrame(tightenCurrent);
+    setTimeout(tightenCurrent, 250);
+    setTimeout(tightenCurrent, 900);
+    setTimeout(tightenCurrent, 1800);
+  }
+
+  function setPresent(on){
+    Array.prototype.forEach.call(document.querySelectorAll('.diagram-wrap iframe'), function(f){
+      try {
+        var el = f.contentDocument.documentElement;
+        if (on) el.setAttribute('data-present', 'true');
+        else el.removeAttribute('data-present');
+      } catch(e){}
+    });
+  }
+
+  function loadDiagram(wrap){
+    if (wrap.dataset.loaded) return;
+    wrap.dataset.loaded = '1';
+    var name = wrap.getAttribute('data-diagram');
+    var payload = document.getElementById('dg-' + name);
+    var note = wrap.querySelector('.loading');
+    if (!payload || !payload.textContent.trim() || payload.textContent.indexOf('__PAYLOAD') === 0){
+      if (note) note.textContent = 'Diagram payload missing.';
+      return;
+    }
+    if (!hasGunzip){
+      if (note) note.textContent = lang === 'vi'
+        ? 'Trình duyệt này không hỗ trợ giải nén sơ đồ. Mở file HTML rời đi kèm.'
+        : 'This browser cannot decompress the diagram. Open the standalone HTML file instead.';
+      return;
+    }
+    gunzipB64(payload.textContent).then(function(html){
+      html = html.replace(/window\.location\.search/g, "'?present=1&theme=light'");
+      var f = document.createElement('iframe');
+      f.setAttribute('aria-label', name + ' diagram');
+      f.setAttribute('loading', 'lazy');
+      f.srcdoc = html;
+      f.onload = function(){ if (note) note.remove(); enhanceDiagram(f); tightenSoon(); };
+      wrap.appendChild(f);
+    }).catch(function(){
+      if (note) note.textContent = 'Diagram failed to load.';
+    });
+  }
+
+  /* ---------- zoom ---------- */
+  function setZoom(on){
+    document.body.classList.toggle('zoomed', on);
+    setPresent(!on);
+    if (on) clearInkSize(); else requestAnimationFrame(sizeAllFrames);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-zoom]'), function(b){
+    b.onclick = function(){ setZoom(true); };
+  });
+  document.getElementById('zoomout').onclick = function(){ setZoom(false); };
+
+  /* ---------- navigation ---------- */
+  function go(n){
+    n = Math.max(0, Math.min(total - 1, n));
+    if (n === idx && slides[n].classList.contains('on')) return;
+    setZoom(false);
+    slides[idx].classList.remove('on');
+    idx = n;
+    slides[idx].classList.add('on');
+    document.getElementById('counter').textContent =
+      String(idx + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    document.getElementById('progress').style.width = ((idx + 1) / total * 100) + '%';
+    document.getElementById('prev').disabled = idx === 0;
+    document.getElementById('next').disabled = idx === total - 1;
+    if (history.replaceState) history.replaceState(null, '', '#' + (idx + 1));
+    [slides[idx], slides[idx + 1]].forEach(function(s){
+      if (!s) return;
+      var w = s.querySelector('.diagram-wrap');
+      if (w) loadDiagram(w);
+    });
+    tightenSoon();
+    if (slides[idx].querySelector('#calc-range')) startSweep(); else cancelSweep();
+    if (slides[idx].querySelector('.v[data-from]')) startCount(slides[idx]); else cancelCount();
+    armAmbient(slides[idx]);
+    Array.prototype.forEach.call(tocList.querySelectorAll('button'), function(b, i){
+      b.setAttribute('aria-current', String(i === idx));
+    });
+  }
+  document.getElementById('prev').onclick = function(){ go(idx - 1); };
+  document.getElementById('next').onclick = function(){ go(idx + 1); };
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'Escape'){
+      if (toc.classList.contains('on')) closeToc();
+      else if (document.body.classList.contains('zoomed')) setZoom(false);
+      return;
+    }
+    if (toc.classList.contains('on') && k !== 'o' && k !== 'O') return;
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Spacebar'){ e.preventDefault(); go(idx + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp'){ e.preventDefault(); go(idx - 1); }
+    else if (k === 'Home'){ e.preventDefault(); go(0); }
+    else if (k === 'End'){ e.preventDefault(); go(total - 1); }
+    else if (k === 'o' || k === 'O'){ e.preventDefault(); toggleToc(); }
+    else if (k === 'v' || k === 'V'){ setLang(lang === 'vi' ? 'en' : 'vi'); }
+  });
+
+  /* ---------- cost calculator ---------- */
+  var range = document.getElementById('calc-range');
+  if (range){
+    var money = function(n){
+      return '$' + (n >= 100 ? Math.round(n).toLocaleString('en-US') : n.toFixed(2));
+    };
+    var recalc = function(){
+      var n = Number(range.value);
+      var llm = n * 0.18, totalCost = llm + 108;
+      document.getElementById('calc-n').textContent = n.toLocaleString('en-US');
+      document.getElementById('calc-llm').textContent = money(llm);
+      document.getElementById('calc-total').textContent = money(totalCost);
+      document.getElementById('calc-unit').textContent = '$' + (totalCost / n).toFixed(2);
+      document.getElementById('calc-vendor').textContent = money(n * 25);
+      var infraShare = (108 / n).toFixed(2);
+      var infraVi = infraShare.replace('.', ',');
+      var note = document.getElementById('calc-note');
+      if (note){
+        note.textContent = lang === 'vi'
+          ? 'Trong đơn giá đó, 0,18 USD là phần LLM và ' + infraVi + ' USD là phần hạ tầng cố định chia đều. Càng ít lượt thì 108 USD hạ tầng càng bị chia cho ít lần, nên đơn giá trọn gói cao hơn — phần LLM thì không đổi.'
+          : 'Of that unit price, $0.18 is the LLM and $' + infraShare + ' is the fixed infrastructure spread across the runs. Fewer runs means the $108 is divided fewer ways, so the all-in unit price rises — the LLM share never moves.';
+      }
+    };
+    range.addEventListener('input', recalc);
+    recalc();
+    window.recalcCost = recalc;
+  }
+
+  /* ---------- headline figures count in ---------- */
+  // Each figure travels from the number it replaces to the number it is, so the
+  // slide states its own before/after without a second column of text. Driven by
+  // elapsed time with a coarse interval alongside rAF, same as the cost sweep.
+  var COUNT_MS = 3000, countFrame = null, countTimer = null;
+  function fmtCount(kind, v){
+    if (kind === 'tilde-int') return '~' + Math.round(v);
+    if (kind === 'tilde-money1') return '~$' + v.toFixed(1);
+    if (kind === 'money-k') return v >= 1000 ? '$' + (v / 1000).toFixed(1) + 'k' : '$' + Math.round(v);
+    return String(Math.round(v));
+  }
+  function cancelCount(){
+    if (countFrame){ cancelAnimationFrame(countFrame); countFrame = null; }
+    if (countTimer){ clearInterval(countTimer); countTimer = null; }
+  }
+  function startCount(slide){
+    var els = Array.prototype.slice.call(slide.querySelectorAll('.v[data-from][data-to]'));
+    if (!els.length) return;
+    cancelCount();
+    els.forEach(function(el){ if (!el.dataset.final) el.dataset.final = el.textContent; });
+    var settle = function(){ els.forEach(function(el){ el.textContent = el.dataset.final; }); };
+    try {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){ settle(); return; }
+    } catch(e){}
+    var startedAt = Date.now();
+    var advance = function(){
+      if (countFrame === null && countTimer === null) return false;
+      var t = Math.min(1, (Date.now() - startedAt) / COUNT_MS);
+      var eased = 1 - Math.pow(1 - t, 3);
+      els.forEach(function(el){
+        var from = Number(el.dataset.from), to = Number(el.dataset.to);
+        el.textContent = fmtCount(el.dataset.fmt, from + (to - from) * eased);
+      });
+      if (t >= 1){ cancelCount(); settle(); return false; }
+      return true;
+    };
+    els.forEach(function(el){
+      el.textContent = fmtCount(el.dataset.fmt, Number(el.dataset.from));
+    });
+    var frame = function(){
+      if (countFrame === null) return;
+      if (advance() === false) return;
+      countFrame = requestAnimationFrame(frame);
+    };
+    countFrame = requestAnimationFrame(frame);
+    countTimer = setInterval(advance, 100);
+  }
+
+  /* ---------- cost slider auto-sweep ---------- */
+  // On entering the cost slide, glide the slider across its full range once so the
+  // shape of the curve is visible without anyone touching it, then settle back on
+  // the real operating point. Position always comes from elapsed time, so the two
+  // drivers below can never disagree: requestAnimationFrame carries the motion at
+  // display refresh rate, and a coarse interval keeps it advancing if frames are
+  // throttled (a backgrounded tab stops rAF entirely).
+  var SWEEP_MS = 3000, SWEEP_HOME = 800;
+  var sweepFrame = null, sweepTimer = null;
+  function cancelSweep(){
+    if (sweepFrame){ cancelAnimationFrame(sweepFrame); sweepFrame = null; }
+    if (sweepTimer){ clearInterval(sweepTimer); sweepTimer = null; }
+  }
+  function startSweep(){
+    var r = document.getElementById('calc-range');
+    if (!r) return;
+    cancelSweep();
+    var settle = function(){
+      r.value = SWEEP_HOME;
+      r.dispatchEvent(new Event('input'));
+    };
+    try {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){ settle(); return; }
+    } catch(e){}
+    var min = Number(r.min) || 0, max = Number(r.max) || 0, step = Number(r.step) || 1;
+    if (max <= min){ settle(); return; }
+    var startedAt = Date.now();
+    var advance = function(){
+      if (sweepFrame === null && sweepTimer === null) return;
+      var t = Math.min(1, (Date.now() - startedAt) / SWEEP_MS);
+      r.value = Math.round((min + (max - min) * t) / step) * step;
+      r.dispatchEvent(new Event('input'));
+      if (t >= 1){ cancelSweep(); settle(); return false; }
+      return true;
+    };
+    r.value = min;
+    r.dispatchEvent(new Event('input'));
+    var frame = function(){
+      if (sweepFrame === null) return;
+      if (advance() === false) return;
+      sweepFrame = requestAnimationFrame(frame);
+    };
+    sweepFrame = requestAnimationFrame(frame);
+    sweepTimer = setInterval(advance, 100);
+  }
+  (function(){
+    var r = document.getElementById('calc-range');
+    if (!r) return;
+    ['pointerdown', 'keydown', 'wheel'].forEach(function(ev){
+      r.addEventListener(ev, cancelSweep);
+    });
+  })();
+
+  /* ---------- boot ---------- */
+  try { var saved = localStorage.getItem('traceai-lang'); if (saved === 'en' || saved === 'vi') lang = saved; } catch(e){}
+  applyLang();
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  slides[0].classList.add('on');
+  go(isFinite(start) && start >= 1 ? start - 1 : 0);
+})();
+</script>
+</body>
+</html>

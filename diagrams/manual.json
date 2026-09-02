@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Today — One Ticket, Four Systems, Sixty Minutes",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "visual_preset": "signal-flow",
+    "animation": "trace",
+    "column_fit": "spread",
+    "viewBox": [
+      1060,
+      625
+    ],
+    "views": [
+      {
+        "id": "the-ticket",
+        "label": "The ticket arrives",
+        "focus": [
+          "customer",
+          "support",
+          "eng"
+        ],
+        "note": "A symptom arrives with no trace ID, and Support must first work out which team even owns it."
+      },
+      {
+        "id": "the-hunt",
+        "label": "The hunt",
+        "focus": [
+          "eng",
+          "sentry",
+          "kibana"
+        ],
+        "note": "One engineer carries the trace ID between systems by hand, guessing time ranges."
+      },
+      {
+        "id": "the-impact",
+        "label": "The impact question",
+        "focus": [
+          "eng",
+          "matomo",
+          "support"
+        ],
+        "note": "The question Support actually needed answered is the one no single system answers."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "customer",
+      "type": "external",
+      "label": "Customer",
+      "sublabel": "reports it"
+    },
+    {
+      "id": "support",
+      "type": "external",
+      "label": "Support",
+      "sublabel": "no code access"
+    },
+    {
+      "id": "eng",
+      "type": "external",
+      "label": "Engineer",
+      "sublabel": "the integrator"
+    },
+    {
+      "id": "sentry",
+      "type": "cloud",
+      "label": "Sentry",
+      "sublabel": "frontend error",
+      "brand": "sentry"
+    },
+    {
+      "id": "kibana",
+      "type": "database",
+      "label": "Kibana",
+      "sublabel": "raw log store",
+      "brand": "elasticsearch"
+    },
+    {
+      "id": "bitbucket",
+      "type": "cloud",
+      "label": "Bitbucket",
+      "sublabel": "source code",
+      "brand": "bitbucket"
+    },
+    {
+      "id": "matomo",
+      "type": "cloud",
+      "label": "Matomo",
+      "sublabel": "who was hit",
+      "brand": {
+        "url": "https://matomo.org/favicon.ico",
+        "sha256": "746d84e309b2227616c9782bcd8c4ef16e1a949d20e7e0c6b38ea302b20112f1"
+      }
+    }
+  ],
+  "segments": [
+    {
+      "from": 148,
+      "to": 216,
+      "label": "0 to 15 min"
+    },
+    {
+      "from": 220,
+      "to": 384,
+      "label": "15 to 40 min"
+    },
+    {
+      "from": 388,
+      "to": 552,
+      "label": "40 to 60 min"
+    }
+  ],
+  "messages": [
+    {
+      "id": "reports",
+      "from": "customer",
+      "to": "support",
+      "y": 172,
+      "label": "I cannot place the order, around 10:15",
+      "variant": "emphasis"
+    },
+    {
+      "id": "escalate",
+      "from": "support",
+      "to": "eng",
+      "y": 200,
+      "label": "find the owning team, escalate",
+      "variant": "emphasis"
+    },
+    {
+      "id": "open-alert",
+      "from": "eng",
+      "to": "sentry",
+      "y": 228,
+      "label": "open the alert",
+      "variant": "default"
+    },
+    {
+      "id": "stack",
+      "from": "sentry",
+      "to": "eng",
+      "y": 256,
+      "label": "stack trace, maybe a trace ID",
+      "variant": "return"
+    },
+    {
+      "id": "copy-paste",
+      "from": "eng",
+      "to": "kibana",
+      "y": 284,
+      "label": "paste the trace ID by hand",
+      "variant": "emphasis"
+    },
+    {
+      "id": "too-much",
+      "from": "kibana",
+      "to": "eng",
+      "y": 312,
+      "label": "thousands of lines",
+      "variant": "return"
+    },
+    {
+      "id": "retry",
+      "from": "eng",
+      "to": "kibana",
+      "y": 340,
+      "label": "guess a time range, search again",
+      "variant": "dashed"
+    },
+    {
+      "id": "maybe",
+      "from": "kibana",
+      "to": "eng",
+      "y": 368,
+      "label": "maybe the right ones",
+      "variant": "return"
+    },
+    {
+      "id": "guess-file",
+      "from": "eng",
+      "to": "bitbucket",
+      "y": 396,
+      "label": "guess the file from the trace",
+      "variant": "default"
+    },
+    {
+      "id": "which-commit",
+      "from": "bitbucket",
+      "to": "eng",
+      "y": 424,
+      "label": "code, but which commit shipped?",
+      "variant": "return"
+    },
+    {
+      "id": "who-hit",
+      "from": "eng",
+      "to": "matomo",
+      "y": 452,
+      "label": "how many customers hit this?",
+      "variant": "default"
+    },
+    {
+      "id": "counts",
+      "from": "matomo",
+      "to": "eng",
+      "y": 480,
+      "label": "visitor counts, not this error",
+      "variant": "return"
+    },
+    {
+      "id": "hypothesis",
+      "from": "eng",
+      "to": "support",
+      "y": 508,
+      "label": "an hour later, a hypothesis",
+      "variant": "return"
+    },
+    {
+      "id": "holding",
+      "from": "support",
+      "to": "customer",
+      "y": 536,
+      "label": "we are still looking into it",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "customer",
+      "from": 167,
+      "to": 205,
+      "type": "external"
+    },
+    {
+      "participant": "customer",
+      "from": 531,
+      "to": 541,
+      "type": "external"
+    },
+    {
+      "participant": "support",
+      "from": 167,
+      "to": 205,
+      "type": "external"
+    },
+    {
+      "participant": "support",
+      "from": 503,
+      "to": 541,
+      "type": "external"
+    },
+    {
+      "participant": "eng",
+      "from": 195,
+      "to": 513,
+      "type": "external"
+    },
+    {
+      "participant": "sentry",
+      "from": 223,
+      "to": 261,
+      "type": "cloud"
+    },
+    {
+      "participant": "kibana",
+      "from": 279,
+      "to": 317,
+      "type": "database"
+    },
+    {
+      "participant": "kibana",
+      "from": 335,
+      "to": 373,
+      "type": "database"
+    },
+    {
+      "participant": "bitbucket",
+      "from": 391,
+      "to": 429,
+      "type": "cloud"
+    },
+    {
+      "participant": "matomo",
+      "from": 447,
+      "to": 485,
+      "type": "cloud"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "The ticket starts blind",
+      "items": [
+        "Support receives a symptom, never a trace ID",
+        "Which team owns the error is a guess, so tickets bounce before they land",
+        "Once it lands, the owning engineer starts from the same blank page"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Support cannot answer its own question",
+      "items": [
+        "How many customers are affected needs three systems",
+        "None of them are open to a Support role",
+        "So every impact question becomes engineering work"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "And the customer waits",
+      "items": [
+        "An hour of carrying one trace ID between four tabs",
+        "Findings end up in a chat thread, not a searchable store",
+        "The same incident next week starts from scratch"
+      ]
+    }
+  ]
+}

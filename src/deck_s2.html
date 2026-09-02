@@ -1,0 +1,123 @@
+<!-- 09 -->
+<section class="slide diagram" data-title-vi="Quyền riêng tư: che PII" data-title-en="Privacy: PII masking">
+  <p class="kicker" data-vi="Quyền riêng tư" data-en="Privacy"></p>
+  <h2 style="margin-bottom:10px" data-vi="Mô hình không bao giờ nhìn thấy dữ liệu khách hàng thật" data-en="The model never sees real customer data"></h2>
+  <div class="dbar">
+    <p class="small" style="max-width:74ch" data-vi="Mọi lời gọi LLM đi qua một lớp bọc: che trước khi gửi, khôi phục sau khi nhận. Bảng ánh xạ chỉ tồn tại trong bộ nhớ tiến trình và không bao giờ được ghi xuống đâu cả." data-en="Every LLM call passes through a wrapper: masked on the way out, restored on the way back. The mapping exists only in process memory and is never written anywhere."></p>
+    <button class="expand" data-zoom data-vi="Xem đầy đủ" data-en="Full view"></button>
+  </div>
+  <div class="diagram-wrap" data-diagram="dataflow"><div class="loading" data-vi="Đang dựng sơ đồ…" data-en="Rendering diagram…"></div></div>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-title-vi="Quản trị &amp; an toàn" data-title-en="Governance &amp; safety">
+  <p class="kicker" data-vi="Quản trị" data-en="Governance"></p>
+  <h2 data-vi="Bốn ràng buộc khiến hệ thống này chạy được trong ngân hàng" data-en="Four constraints that make this safe inside a bank"></h2>
+  <div class="body">
+    <div class="grid reveal g4" style="align-content:start">
+      <div class="card">
+        <div class="num">01</div><h3 data-vi="Danh tính và quyền" data-en="Identity and access"></h3>
+        <ul class="ticks plain" style="margin-top:10px">
+          <li data-vi="SSO Microsoft Entra ID, MSAL + JWT" data-en="Microsoft Entra ID SSO, MSAL + JWT"></li>
+          <li data-vi="Middleware phân vai Support và Dev" data-en="Role middleware separating Support and Dev"></li>
+          <li data-vi="Support không bao giờ chạm tới mã nguồn" data-en="Support never reaches source code"></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="num">02</div><h3 data-vi="Bảo mật thông tin đăng nhập" data-en="Credential security"></h3>
+        <ul class="ticks plain" style="margin-top:10px">
+          <li data-vi="Token riêng từng người cho cả năm nguồn dữ liệu" data-en="Per-user tokens for all five data sources"></li>
+          <li data-vi="Mã hoá AES-256-GCM khi lưu trữ" data-en="AES-256-GCM encryption at rest"></li>
+          <li data-vi="Không tồn tại super-token dùng chung ở bất kỳ đâu" data-en="No shared super-token exists anywhere"></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="num">03</div><h3 data-vi="Thực thi an toàn" data-en="Safe execution"></h3>
+        <ul class="ticks plain" style="margin-top:10px">
+          <li data-vi="Mặc định chỉ đọc; đường ghi duy nhất do người khởi tạo" data-en="Read-only by default; the single write path is human-initiated"></li>
+          <li data-vi="Ngân sách công cụ và giới hạn vòng lặp" data-en="Tool budgets and iteration limits"></li>
+          <li data-vi="Bước kết luận bắt buộc, tắt công cụ, chặn vòng lặp chạy loạn" data-en="A forced-final step with tools disabled stops runaway loops"></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="num">04</div><h3 data-vi="Giám sát và kiểm chứng" data-en="Monitoring and validation"></h3>
+        <ul class="ticks plain" style="margin-top:10px">
+          <li data-vi="Prometheus, Elastic APM, log JSON chuẩn ECS" data-en="Prometheus, Elastic APM, ECS-format JSON logs"></li>
+          <li data-vi="Đầu ra ràng buộc schema, có mức độ tin cậy" data-en="Schema-enforced output carrying a confidence level"></li>
+          <li data-vi="Thiếu bằng chứng thì phải nói thiếu, không được bịa" data-en="Insufficient evidence must be declared, never fabricated"></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot" data-vi="Nền tảng tự chịu đúng kỷ luật quan sát mà nó phục vụ: mỗi lần chạy đều có telemetry về thời lượng và số token, và đó chính là nguồn của mọi con số trong phần tiếp theo." data-en="The platform is observed by the same discipline it serves: every run emits duration and token telemetry, and that telemetry is the source of every number that follows."></div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="slide" data-title-vi="Kết quả đo được" data-title-en="Measured results">
+  <p class="kicker" data-vi="Tác động" data-en="Impact"></p>
+  <h2 data-vi="Đo được gì, và đo bằng cách nào" data-en="What we measured, and how"></h2>
+  <p class="lede" data-vi="Các con số dưới đây lấy từ telemetry của chính hệ thống, ở mức khoảng 800 lần phân tích một tháng. Phần quy đổi ra tiền là ước tính, dựa trên một giả định về đơn giá nhân sự." data-en="The figures below come from the system's own telemetry, at roughly 800 analyses a month. The conversion into money is an estimate resting on an assumed cost per engineer."></p>
+  <div class="body">
+    <div class="stats" style="margin-bottom:clamp(20px,3.4vh,38px)">
+      <div class="stat"><div class="n"><span class="v" data-from="60" data-to="3" data-fmt="tilde-int">~3</span><span class="u">min</span></div><div class="l" data-vi="Thời gian tới nguyên nhân gốc, so với mốc thủ công khoảng 60 phút đo trên các sự cố mẫu" data-en="Time to root cause, against a manual baseline of about 60 minutes sampled from real incidents"></div></div>
+      <div class="stat"><div class="n"><span class="v" data-from="0" data-to="760" data-fmt="tilde-int">~760</span><span class="u">h</span></div><div class="l" data-vi="Giờ kỹ sư ước tính tiết kiệm mỗi tháng ở mức 800 lần phân tích" data-en="Estimated engineer hours saved each month at 800 analyses"></div></div>
+      <div class="stat"><div class="n"><span class="v" data-from="0" data-to="9.5" data-fmt="tilde-money1">~$9.5</span><span class="u">k</span></div><div class="l" data-vi="Giá trị quy đổi từ số giờ đó, theo giả định 2.000 USD cho mỗi FTE tháng" data-en="That time converted at an assumed $2,000 per FTE-month"></div></div>
+      <div class="stat"><div class="n"><span class="v" data-from="9500" data-to="252" data-fmt="money-k">$252</span><span class="u">/th</span></div><div class="l" data-vi="Chi phí vận hành thực tế cùng kỳ, gồm Bedrock và hạ tầng" data-en="Actual run cost over the same period, Bedrock plus infrastructure"></div></div>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <h3 data-vi="Cách tính" data-en="How it is calculated"></h3>
+        <p style="font-family:var(--mono); font-size:12px; line-height:1.7; color:var(--ink)">hours_saved = N × (t_manual − t_ai)<br>800 × 57 min = 760 h<br>760 h ÷ 160 h = 4.75 FTE</p>
+        <p class="small" style="margin-top:10px" data-vi="t_ai được ghi tự động mỗi lần chạy; t_manual là mốc lấy từ một mẫu sự cố xử lý thủ công, nên đây là ước lượng chứ không phải phép đo đối chứng." data-en="t_ai is captured automatically per run; t_manual is a baseline from a sample of manually handled incidents, so this is an estimate rather than a controlled measurement."></p>
+      </div>
+      <div class="card">
+        <h3 data-vi="Số liệu đến từ đâu" data-en="Where the numbers come from"></h3>
+        <ul class="ticks plain" style="margin-top:10px">
+          <li data-vi="Module thống kê trong sản phẩm: số lần chạy và thời lượng từng lần" data-en="The in-product statistics module: run counts and per-run duration"></li>
+          <li data-vi="Telemetry token của Bedrock cho chi phí mỗi lần phân tích" data-en="Bedrock token telemetry for the cost of each analysis"></li>
+          <li data-vi="Nút phản hồi tốt/xấu trên từng phân tích cho tỉ lệ chính xác" data-en="The thumbs up or down on each analysis for the accuracy rate"></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot" data-vi="Con số giờ và tiền phụ thuộc vào mốc thủ công và đơn giá nhân sự được giả định; nếu hai giả định đó thay đổi thì kết quả thay đổi theo. Phần đo trực tiếp — thời lượng mỗi lần chạy và chi phí token — không phụ thuộc giả định nào." data-en="The hours and money depend on the manual baseline and the assumed cost per engineer; change those assumptions and the result moves with them. The directly measured parts — per-run duration and token cost — rest on no assumption."></div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="slide" data-title-vi="Chi phí" data-title-en="Cost">
+  <p class="kicker" data-vi="Chi phí" data-en="Cost"></p>
+  <h2 data-vi="0,32 USD một lần điều tra, đã tính cả hạ tầng" data-en="Thirty-two cents per investigation, infrastructure included"></h2>
+  <p class="lede" data-vi="Trong đó 0,18 USD là phần mô hình và phần còn lại là hạ tầng chia đều. Con số nhỏ không phải vì bỏ sót, mà vì mỗi lần điều tra chỉ xử lý vài chục đến vài trăm dòng log đã lọc." data-en="Of that, $0.18 is the model and the rest is amortised infrastructure. The number is small not because anything is skipped, but because one investigation only ever processes tens to a few hundred filtered log lines."></p>
+  <div class="body">
+    <div class="grid g2" style="align-items:start">
+      <div>
+        <div class="grid g2" style="margin-bottom:clamp(12px,1.6vw,18px)">
+          <div class="card"><h3 data-vi="Mỗi lần phân tích" data-en="Per analysis"></h3><p style="font-family:var(--mono); font-size:12px; line-height:1.75">~32,700 input tokens<br>~5,600 output tokens<br>~26 tool calls</p></div>
+          <div class="card"><h3 data-vi="Đơn giá Bedrock" data-en="Bedrock unit price"></h3><p style="font-family:var(--mono); font-size:12px; line-height:1.75"><span style="color:var(--red)">Claude Sonnet 4.6</span><br>input $3 / 1M<br>output $15 / 1M<br>cache read $0.30 / 1M</p></div>
+        </div>
+        <div class="card accent">
+          <h3 data-vi="Chi phí vận hành hàng tháng ở mức 800 lần" data-en="Monthly run cost at 800 analyses"></h3>
+          <p style="font-family:var(--mono); font-size:12.5px; line-height:1.8; margin-top:6px">Bedrock&nbsp;&nbsp;$144<br>Infrastructure&nbsp;&nbsp;$108<span style="color:var(--muted)">&nbsp;&nbsp;($61 compute + $47)</span><br><b style="border-top:1px solid #F0C9CB; display:inline-block; padding-top:6px; margin-top:4px">Total&nbsp;&nbsp;$252 / month</b></p>
+        </div>
+        <p class="small" style="margin-top:12px" data-vi="Chi phí xây dựng một lần: 3 kỹ sư × 1 tháng, toàn bộ trên stack mã nguồn mở, không mua license nào." data-en="One-off build cost: 3 engineers × 1 month, entirely on an open-source stack, with zero licence spend."></p>
+      </div>
+      <div class="calc">
+        <div class="calc-head">
+          <span class="q" data-vi="Số lần điều tra mỗi tháng" data-en="Investigations per month"></span>
+          <output id="calc-n">800</output>
+        </div>
+        <input type="range" id="calc-range" min="100" max="3000" step="10" value="800" aria-label="Investigations per month">
+        <div class="calc-out">
+          <div><div class="n" id="calc-llm">$144</div><div class="l" data-vi="Chi phí Bedrock" data-en="Bedrock cost"></div></div>
+          <div class="hl"><div class="n" id="calc-total">$252</div><div class="l" data-vi="Tổng chi phí vận hành / tháng" data-en="Total run cost / month"></div></div>
+          <div><div class="n" id="calc-unit">$0.32</div><div class="l" data-vi="Trọn gói mỗi lần điều tra" data-en="All-in per investigation"></div></div>
+        </div>
+        <p class="small" id="calc-note" style="margin-top:12px; line-height:1.5"></p>
+        <div class="calc-out" style="grid-template-columns:1fr; margin-top:14px; padding-top:14px">
+          <div><div class="n" id="calc-vendor" style="color:var(--ink-2)">$20,000</div><div class="l" data-vi="Cùng khối lượng đó, ngoại suy theo giá niêm yết ~25 USD một lần điều tra của một nền tảng AI SRE thương mại" data-en="The same volume, extrapolated at a commercial AI SRE platform's published rate of about $25 per investigation"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot" data-vi="Phần LLM luôn là 0,18 USD mỗi lần, ở mọi khối lượng — nó tuyến tính, không có bậc license và không tính theo ghế. Chỉ có phần hạ tầng cố định là được chia đều ra, nên càng dùng nhiều thì đơn giá trọn gói càng rẻ." data-en="The LLM share is $0.18 per run at every volume — linear, with no licence steps and no per-seat fee. Only the fixed infrastructure is amortised, which is why the all-in unit price falls as usage rises."></div>
+  </div>
+</section>

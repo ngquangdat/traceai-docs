@@ -1,0 +1,278 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "One Investigation — Narrowing Millions of Log Lines",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "narrowing",
+        "label": "Steps 1–2 · narrow",
+        "focus": [
+          "agent",
+          "kibana"
+        ],
+        "note": "Error level first, then the distributed trace ID — the two filters that remove almost everything."
+      },
+      {
+        "id": "grounding",
+        "label": "Steps 3–4 · ground",
+        "focus": [
+          "agent",
+          "bitbucket",
+          "kibana"
+        ],
+        "note": "Locate the failing code from the stack trace, then reopen a ±2 minute window around it."
+      },
+      {
+        "id": "conclusion",
+        "label": "Forced final",
+        "focus": [
+          "agent",
+          "llm",
+          "eng"
+        ],
+        "note": "Tools are switched off and the model must conclude from the evidence it already holds."
+      }
+    ],
+    "column_fit": "spread",
+    "visual_preset": "signal-flow",
+    "animation": "trace",
+    "viewBox": [
+      1060,
+      620
+    ]
+  },
+  "participants": [
+    {
+      "id": "eng",
+      "type": "external",
+      "label": "Engineer",
+      "sublabel": "one trace ID"
+    },
+    {
+      "id": "agent",
+      "type": "backend",
+      "label": "AIAnalyzer",
+      "sublabel": "LangGraph loop"
+    },
+    {
+      "id": "llm",
+      "type": "cloud",
+      "label": "Claude",
+      "sublabel": "via AWS Bedrock",
+      "brand": "claude"
+    },
+    {
+      "id": "kibana",
+      "type": "database",
+      "label": "Kibana / Elastic",
+      "sublabel": "raw log store",
+      "brand": "elasticsearch"
+    },
+    {
+      "id": "bitbucket",
+      "type": "external",
+      "label": "Bitbucket",
+      "sublabel": "source + graph",
+      "brand": "bitbucket"
+    }
+  ],
+  "segments": [
+    {
+      "from": 148,
+      "to": 338,
+      "label": "Narrow the logs"
+    },
+    {
+      "from": 340,
+      "to": 458,
+      "label": "Ground in code and time"
+    },
+    {
+      "from": 460,
+      "to": 548,
+      "label": "Conclude on evidence"
+    }
+  ],
+  "messages": [
+    {
+      "id": "kickoff",
+      "from": "eng",
+      "to": "agent",
+      "y": 172,
+      "label": "one trace ID",
+      "variant": "emphasis"
+    },
+    {
+      "id": "plan",
+      "from": "agent",
+      "to": "llm",
+      "y": 202,
+      "label": "plan next tool",
+      "variant": "dashed"
+    },
+    {
+      "id": "step1",
+      "from": "agent",
+      "to": "kibana",
+      "y": 232,
+      "label": "1 · ERROR / WARN only",
+      "variant": "default"
+    },
+    {
+      "id": "step1-ret",
+      "from": "kibana",
+      "to": "agent",
+      "y": 262,
+      "label": "candidate failures",
+      "variant": "return"
+    },
+    {
+      "id": "step2",
+      "from": "agent",
+      "to": "kibana",
+      "y": 292,
+      "label": "2 · filter by trace ID",
+      "variant": "emphasis"
+    },
+    {
+      "id": "step2-ret",
+      "from": "kibana",
+      "to": "agent",
+      "y": 322,
+      "label": "one request, all services",
+      "variant": "return"
+    },
+    {
+      "id": "step3",
+      "from": "agent",
+      "to": "bitbucket",
+      "y": 352,
+      "label": "3 · file from stack trace",
+      "variant": "default"
+    },
+    {
+      "id": "step3-ret",
+      "from": "bitbucket",
+      "to": "agent",
+      "y": 382,
+      "label": "code + callers",
+      "variant": "return"
+    },
+    {
+      "id": "step4",
+      "from": "agent",
+      "to": "kibana",
+      "y": 412,
+      "label": "4 · plus or minus 2 min window",
+      "variant": "default"
+    },
+    {
+      "id": "step4-ret",
+      "from": "kibana",
+      "to": "agent",
+      "y": 442,
+      "label": "the request story",
+      "variant": "return"
+    },
+    {
+      "id": "final",
+      "from": "agent",
+      "to": "llm",
+      "y": 472,
+      "label": "forced final, tools off",
+      "variant": "security"
+    },
+    {
+      "id": "final-ret",
+      "from": "llm",
+      "to": "agent",
+      "y": 502,
+      "label": "schema-checked JSON",
+      "variant": "return"
+    },
+    {
+      "id": "report",
+      "from": "agent",
+      "to": "eng",
+      "y": 532,
+      "label": "root cause with file:line",
+      "variant": "emphasis"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "agent",
+      "from": 167,
+      "to": 537,
+      "type": "backend"
+    },
+    {
+      "participant": "llm",
+      "from": 197,
+      "to": 217,
+      "type": "cloud"
+    },
+    {
+      "participant": "kibana",
+      "from": 227,
+      "to": 267,
+      "type": "database"
+    },
+    {
+      "participant": "kibana",
+      "from": 287,
+      "to": 327,
+      "type": "database"
+    },
+    {
+      "participant": "bitbucket",
+      "from": 347,
+      "to": 387,
+      "type": "external"
+    },
+    {
+      "participant": "kibana",
+      "from": 407,
+      "to": 447,
+      "type": "database"
+    },
+    {
+      "participant": "llm",
+      "from": 467,
+      "to": 507,
+      "type": "cloud"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Why the cost stays small",
+      "items": [
+        "Each step hands the model a smaller set than the one before",
+        "Only tens to a few hundred filtered lines ever reach the context",
+        "The full log volume is never paid for as tokens"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Pull, not push",
+      "items": [
+        "The agent asks for evidence; nothing is streamed at it",
+        "Tool choice is made per step from what the last result showed",
+        "Roughly 26 tool calls in an average run"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Bounded by design",
+      "items": [
+        "Iteration warnings precede a hard forced-final step",
+        "With tools disabled the model must conclude or state what is missing",
+        "No unbounded agent loop can run up a bill"
+      ]
+    }
+  ]
+}

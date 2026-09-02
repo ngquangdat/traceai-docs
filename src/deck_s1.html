@@ -1,0 +1,122 @@
+<!-- 01 -->
+<section class="slide title-slide" data-title-vi="Trang bìa" data-title-en="Title">
+  <p class="kicker">AI-Powered Production Debugging Ecosystem</p>
+  <h1>TraceAI</h1>
+  <p class="lede" data-vi="Từ một trace ID đến nguyên nhân gốc có bằng chứng mã nguồn — trong khoảng ba phút, với chi phí bằng một phần nghìn giá thị trường." data-en="From a single trace ID to a root cause backed by source-code evidence — in about three minutes, at a thousandth of the market price."></p>
+  <div class="tstats">
+    <div class="tstat"><div class="n">60 → <em>3</em> min</div><div class="l" data-vi="Thời gian tới nguyên nhân gốc" data-en="Time to root cause"></div></div>
+    <div class="tstat"><div class="n"><em>$0.32</em></div><div class="l" data-vi="Chi phí trọn gói mỗi lần điều tra, đã gồm hạ tầng" data-en="All-in cost per investigation, infrastructure included"></div></div>
+    <div class="tstat"><div class="n"><em>38×</em></div><div class="l" data-vi="ROI trên chi phí vận hành" data-en="ROI over run cost"></div></div>
+    <div class="tstat"><div class="n"><em>4</em> <span style="font-size:.62em">systems</span></div><div class="l" data-vi="Sentry · Kibana · Matomo · Bitbucket" data-en="Sentry · Kibana · Matomo · Bitbucket"></div></div>
+  </div>
+</section>
+
+<!-- 02 -->
+<section class="slide diagram" data-title-vi="Bài toán" data-title-en="The problem">
+  <p class="kicker" data-vi="Bài toán" data-en="The problem"></p>
+  <h2 style="margin-bottom:9px" data-vi="Một lỗi production, bốn hệ thống, sáu mươi phút" data-en="One production error, four systems, sixty minutes"></h2>
+  <div class="dbar">
+    <p class="small" style="max-width:78ch" data-vi="Khách báo lỗi cho Support. Không có trace ID, Support phải tự đoán đội nào sở hữu lỗi rồi mới đẩy sang được. Và câu hỏi Support cần nhất — bao nhiêu khách bị ảnh hưởng — lại là câu không hệ thống nào trả lời." data-en="A customer reports a failure to Support. With no trace ID, Support must first work out which team even owns the error before it can escalate. And the question it actually needed — how many customers are affected — is the one no system answers."></p>
+    <button class="expand" data-zoom data-vi="Xem đầy đủ" data-en="Full view"></button>
+  </div>
+  <div class="diagram-wrap" data-diagram="manual"><div class="loading" data-vi="Đang dựng sơ đồ…" data-en="Rendering diagram…"></div></div>
+</section>
+
+<!-- 03 -->
+<section class="slide" data-title-vi="Giải pháp" data-title-en="The solution">
+  <p class="kicker" data-vi="Giải pháp" data-en="The solution"></p>
+  <h2 data-vi="Một kỹ sư điều tra, luôn trực" data-en="An investigating engineer, always on call"></h2>
+  <p class="lede" data-vi="TraceAI không phải một dashboard nữa. Nó là một agent tự chọn công cụ, tự đọc log và mã nguồn, rồi trả lại một báo cáo mà mọi câu đều có bằng chứng đi kèm." data-en="TraceAI is not another dashboard. It is an agent that chooses its own tools, reads logs and source code, and returns a report in which every claim carries its evidence."></p>
+  <div class="body">
+    <div class="grid reveal g3" style="align-content:start">
+      <div class="card">
+        <div class="num">01</div>
+        <h3 data-vi="Xuyên tầng" data-en="Cross-stack"></h3>
+        <p data-vi="Một trace ID chạy xuyên suốt: từ lỗi frontend trên Sentry, qua từng service backend mà request đó đi qua trong Kibana và APM, tới hành vi người dùng trên Matomo và dòng code trên Bitbucket." data-en="One trace ID runs the whole way: from a frontend error in Sentry, through every backend service that request passed through in Kibana and APM, to the user behaviour in Matomo and the line of code in Bitbucket."></p>
+      </div>
+      <div class="card">
+        <div class="num">02</div>
+        <h3 data-vi="Gắn với bằng chứng" data-en="Bound to evidence"></h3>
+        <p data-vi="Mọi kết luận trỏ về một dòng log thật hoặc một file:line thật. Khi thiếu bằng chứng, agent buộc phải nói thiếu gì thay vì đoán." data-en="Every conclusion points to a real log line or a real file:line. When evidence is missing, the agent must say what is missing instead of guessing."></p>
+      </div>
+      <div class="card">
+        <div class="num">03</div>
+        <h3 data-vi="Khép vòng" data-en="Closed loop"></h3>
+        <p data-vi="Chọn một khuyến nghị, TraceAI tạo branch, commit và pull request nháp trên Bitbucket. Phần này đang dần hoàn thiện — hiện mới xử lý được các sửa đơn giản, và quyền merge luôn thuộc về con người." data-en="Select a recommendation and TraceAI opens a branch, a commit and a draft pull request on Bitbucket. This part is still maturing — today it covers simple fixes only, and merge rights always stay human."></p>
+      </div>
+    </div>
+    <div class="foot" data-vi="Xây trên LangGraph + FastAPI + React, mô hình Claude chạy qua AWS Bedrock trong chính tài khoản AWS của TCBS. Không mua license của bên thứ ba nào." data-en="Built on LangGraph + FastAPI + React, with Claude served through AWS Bedrock inside TCBS's own AWS account. No third-party licence was purchased."></div>
+  </div>
+</section>
+
+<!-- 04 -->
+<section class="slide diagram" data-title-vi="Kiến trúc hệ thống" data-title-en="System architecture">
+  <p class="kicker" data-vi="Kiến trúc" data-en="Architecture"></p>
+  <h2 style="margin-bottom:10px" data-vi="Agent chạy bằng quyền của chính người hỏi" data-en="The agent runs on the caller's own permissions"></h2>
+  <div class="dbar">
+    <p class="small" style="max-width:74ch" data-vi="Agent không có quyền riêng của nó. Mọi lời gọi tới Kibana, Sentry, Matomo và Bitbucket đều đi bằng token của chính người đang hỏi, nên nó không bao giờ đọc được nhiều hơn người đó được phép đọc." data-en="The agent holds no permissions of its own. Every call to Kibana, Sentry, Matomo and Bitbucket travels on the token of whoever asked, so it can never read more than that person already can."></p>
+    <button class="expand" data-zoom data-vi="Xem đầy đủ" data-en="Full view"></button>
+  </div>
+  <div class="diagram-wrap" data-diagram="architecture"><div class="loading" data-vi="Đang dựng sơ đồ…" data-en="Rendering diagram…"></div></div>
+</section>
+
+<!-- 05 -->
+<section class="slide diagram" data-title-vi="Một lần điều tra" data-title-en="One investigation">
+  <p class="kicker" data-vi="Quy trình" data-en="How it runs"></p>
+  <h2 style="margin-bottom:10px" data-vi="Thu hẹp dần, không bao giờ đọc cả biển log" data-en="Narrow at every step, never read the whole ocean"></h2>
+  <div class="dbar">
+    <p class="small" style="max-width:74ch" data-vi="Lọc theo mức lỗi, rồi theo trace ID, rồi theo vị trí trong code, rồi theo cửa sổ ±2 phút. Mỗi bước nhỏ hơn bước trước — đó là lý do phần mô hình chỉ tốn 0,18 USD cho mỗi lần điều tra." data-en="Filter by error level, then by trace ID, then by position in the code, then by a ±2 minute window. Each step is smaller than the last — which is why the model itself costs $0.18 per investigation."></p>
+    <button class="expand" data-zoom data-vi="Xem đầy đủ" data-en="Full view"></button>
+  </div>
+  <div class="diagram-wrap" data-diagram="sequence"><div class="loading" data-vi="Đang dựng sơ đồ…" data-en="Rendering diagram…"></div></div>
+</section>
+
+<!-- 06 -->
+<section class="slide" data-title-vi="Hai chế độ theo vai trò" data-title-en="Two role-based modes">
+  <p class="kicker" data-vi="Người dùng" data-en="Who uses it"></p>
+  <h2 data-vi="Cùng một sự cố, hai câu trả lời khác nhau" data-en="One incident, two different answers"></h2>
+  <p class="lede" data-vi="Vai trò được thực thi ở middleware, không phải bằng cách ẩn nút trên giao diện. Chế độ Support không bao giờ nhìn thấy mã nguồn." data-en="Roles are enforced in middleware, not by hiding buttons in the UI. Support mode never sees source code."></p>
+  <div class="body">
+    <div class="grid reveal g2" style="align-content:start">
+      <div class="card">
+        <div class="num" data-vi="CHẾ ĐỘ SUPPORT" data-en="SUPPORT MODE"></div>
+        <h3 data-vi="Trả lời được khách hàng ngay" data-en="Answer the customer immediately"></h3>
+        <ul class="ticks" style="margin-top:12px">
+          <li data-vi="Đội nào sở hữu lỗi này" data-en="Which team owns this error"></li>
+          <li data-vi="Bao nhiêu khách hàng đang bị ảnh hưởng" data-en="How many customers are affected"></li>
+          <li data-vi="Khách hàng đã thao tác gì trước khi lỗi xảy ra" data-en="What the customer was doing before it broke"></li>
+          <li data-vi="Hướng xử lý đề xuất, không cần kiến thức kỹ thuật" data-en="Suggested handling, with no engineering knowledge required"></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="num" data-vi="CHẾ ĐỘ DEV" data-en="DEV MODE"></div>
+        <h3 data-vi="Đi tới tận dòng code" data-en="Go all the way to the line of code"></h3>
+        <ul class="ticks" style="margin-top:12px">
+          <li data-vi="Phân tích nguyên nhân gốc đầy đủ, kèm bảng bằng chứng" data-en="Full root-cause analysis with an evidence table"></li>
+          <li data-vi="Đoạn code liên quan, tự lấy về từ git theo đúng commit" data-en="The affected code, fetched from git at the right commit"></li>
+          <li data-vi="Mô tả luồng xuyên service và input thật của request" data-en="Cross-service flow and the request's real input"></li>
+          <li data-vi="Khuyến nghị sửa, mức độ tin cậy, và các bước tái hiện" data-en="Recommended fixes, a confidence level, and reproduction steps"></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot" data-vi="Đăng nhập bằng Microsoft Entra ID (MSAL + JWT). Mỗi người dùng tự nhập token riêng cho Kibana, Sentry, Matomo và Bitbucket; token được mã hoá AES-256-GCM khi lưu." data-en="Sign-in through Microsoft Entra ID (MSAL + JWT). Each user supplies their own tokens for Kibana, Sentry, Matomo and Bitbucket, stored AES-256-GCM encrypted."></div>
+  </div>
+</section>
+
+<!-- 07 -->
+<section class="slide" data-title-vi="Bản đồ tính năng" data-title-en="Capability map">
+  <p class="kicker" data-vi="Hệ sinh thái" data-en="The ecosystem"></p>
+  <h2 data-vi="Từ một công cụ phân tích thành một hệ sinh thái gỡ lỗi" data-en="From a single analyser into a debugging ecosystem"></h2>
+  <div class="body">
+    <div class="grid reveal g4" style="align-content:start">
+      <div class="card"><div class="num">01</div><h3 data-vi="Truy vết xuyên tầng" data-en="Cross-stack tracing"></h3><p data-vi="Nối lỗi frontend với trace backend qua Sentry additional_data." data-en="Links a frontend error to its backend trace through Sentry additional_data."></p></div>
+      <div class="card"><div class="num">02</div><h3 data-vi="Chat AI" data-en="Chat AI"></h3><p data-vi="Tab chat có đủ bộ công cụ, và bubble chat hỏi tiếp ngay trên một kết quả cụ thể." data-en="A chat tab with the full toolset, plus a bubble chat for follow-ups on one specific result."></p></div>
+      <div class="card"><div class="num">03</div><h3 data-vi="Auto Fix" data-en="Auto Fix"></h3><p data-vi="Chọn khuyến nghị, hệ thống tạo branch, commit và pull request nháp. Hiện ở phạm vi các sửa đơn giản." data-en="Select a recommendation and the system creates a branch, a commit and a draft pull request. Simple fixes for now."></p></div>
+      <div class="card"><div class="num">04</div><h3 data-vi="Thông báo Teams" data-en="Teams notifications"></h3><p data-vi="Báo phân tích xong kèm deep link thẳng tới kết quả, không phải ngồi canh tab." data-en="Announces a finished analysis with a deep link to the result, so nobody waits on a browser tab."></p></div>
+      <div class="card"><div class="num">05</div><h3 data-vi="Monitor" data-en="Monitor"></h3><p data-vi="Lỗi theo service theo thời gian thực, API chậm, và dòng thời gian các đợt tăng đột biến." data-en="Real-time errors per service, slow APIs, and spike timelines."></p></div>
+      <div class="card"><div class="num">06</div><h3 data-vi="Truy vết hiệu năng" data-en="Performance tracing"></h3><p data-vi="Không chỉ lỗi mà cả độ trễ: service, query hay external call nào là nút thắt, chi tiết tới từng span." data-en="Not only errors but latency: which service, query or external call is the bottleneck, down to the span."></p></div>
+      <div class="card"><div class="num">07</div><h3 data-vi="Code graph" data-en="Code graph"></h3><p data-vi="Đồ thị lời gọi tĩnh dựng bằng tree-sitter: hàm nào gọi hàm nào, dùng để điều hướng mã nguồn chính xác." data-en="A static call graph built with tree-sitter: which function calls which, driving precise code navigation."></p></div>
+      <div class="card"><div class="num">08</div><h3 data-vi="Thống kê &amp; phản hồi" data-en="Statistics &amp; feedback"></h3><p data-vi="Số lần chạy, thời lượng, xu hướng lỗi theo service, và nút phản hồi tốt/xấu trên từng phân tích." data-en="Run counts, durations, error trends per service, and a thumbs up or down on every analysis."></p></div>
+    </div>
+  </div>
+</section>
