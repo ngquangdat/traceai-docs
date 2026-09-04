@@ -59,15 +59,15 @@
   <p class="lede" data-vi="Các con số dưới đây lấy từ telemetry của chính hệ thống, ở mức khoảng 800 lần phân tích một tháng. Phần quy đổi ra tiền là ước tính, dựa trên một giả định về đơn giá nhân sự." data-en="The figures below come from the system's own telemetry, at roughly 800 analyses a month. The conversion into money is an estimate resting on an assumed cost per engineer."></p>
   <div class="body">
     <div class="stats" style="margin-bottom:clamp(20px,3.4vh,38px)">
-      <div class="stat"><div class="n"><span class="v" data-from="60" data-to="3" data-fmt="tilde-int">~3</span><span class="u">min</span></div><div class="l" data-vi="Thời gian tới nguyên nhân gốc, so với mốc thủ công khoảng 60 phút đo trên các sự cố mẫu" data-en="Time to root cause, against a manual baseline of about 60 minutes sampled from real incidents"></div></div>
-      <div class="stat"><div class="n"><span class="v" data-from="0" data-to="760" data-fmt="tilde-int">~760</span><span class="u">h</span></div><div class="l" data-vi="Giờ kỹ sư ước tính tiết kiệm mỗi tháng ở mức 800 lần phân tích" data-en="Estimated engineer hours saved each month at 800 analyses"></div></div>
-      <div class="stat"><div class="n"><span class="v" data-from="0" data-to="9.5" data-fmt="tilde-money1">~$9.5</span><span class="u">k</span></div><div class="l" data-vi="Giá trị quy đổi từ số giờ đó, theo giả định 2.000 USD cho mỗi FTE tháng" data-en="That time converted at an assumed $2,000 per FTE-month"></div></div>
-      <div class="stat"><div class="n"><span class="v" data-from="9500" data-to="252" data-fmt="money-k">$252</span><span class="u">/th</span></div><div class="l" data-vi="Chi phí vận hành thực tế cùng kỳ, gồm Bedrock và hạ tầng" data-en="Actual run cost over the same period, Bedrock plus infrastructure"></div></div>
+      <div class="stat"><div class="n"><span class="v" data-from="20" data-to="3" data-fmt="tilde-int">~3</span><span class="u">min</span></div><div class="l" data-vi="Thời gian tới nguyên nhân gốc, so với mốc thủ công khoảng 20 phút đo trên các sự cố mẫu" data-en="Time to root cause, against a manual baseline of about 20 minutes sampled from real incidents"></div></div>
+      <div class="stat"><div class="n"><span class="v" data-from="0" data-to="227" data-fmt="tilde-int">~227</span><span class="u">h</span></div><div class="l" data-vi="Giờ kỹ sư ước tính tiết kiệm mỗi tháng ở mức 800 lần phân tích" data-en="Estimated engineer hours saved each month at 800 analyses"></div></div>
+      <div class="stat"><div class="n"><span class="v" data-from="0" data-to="2.8" data-fmt="tilde-money1">~$2.8</span><span class="u">k</span></div><div class="l" data-vi="Giá trị quy đổi từ số giờ đó, theo giả định 2.000 USD cho mỗi FTE tháng" data-en="That time converted at an assumed $2,000 per FTE-month"></div></div>
+      <div class="stat"><div class="n"><span class="v" data-from="2833" data-to="252" data-fmt="money-k">$252</span><span class="u">/th</span></div><div class="l" data-vi="Chi phí vận hành thực tế cùng kỳ, gồm Bedrock và hạ tầng" data-en="Actual run cost over the same period, Bedrock plus infrastructure"></div></div>
     </div>
     <div class="grid g2">
       <div class="card">
         <h3 data-vi="Cách tính" data-en="How it is calculated"></h3>
-        <p style="font-family:var(--mono); font-size:12px; line-height:1.7; color:var(--ink)">hours_saved = N × (t_manual − t_ai)<br>800 × 57 min = 760 h<br>760 h ÷ 160 h = 4.75 FTE</p>
+        <p style="font-family:var(--mono); font-size:12px; line-height:1.7; color:var(--ink)">hours_saved = N × (t_manual − t_ai)<br>800 × 17 min = 227 h<br>227 h ÷ 160 h = 1.42 FTE</p>
         <p class="small" style="margin-top:10px" data-vi="t_ai được ghi tự động mỗi lần chạy; t_manual là mốc lấy từ một mẫu sự cố xử lý thủ công, nên đây là ước lượng chứ không phải phép đo đối chứng." data-en="t_ai is captured automatically per run; t_manual is a baseline from a sample of manually handled incidents, so this is an estimate rather than a controlled measurement."></p>
       </div>
       <div class="card">
@@ -99,7 +99,7 @@
           <h3 data-vi="Chi phí vận hành hàng tháng ở mức 800 lần" data-en="Monthly run cost at 800 analyses"></h3>
           <p style="font-family:var(--mono); font-size:12.5px; line-height:1.8; margin-top:6px">Bedrock&nbsp;&nbsp;$144<br>Infrastructure&nbsp;&nbsp;$108<span style="color:var(--muted)">&nbsp;&nbsp;($61 compute + $47)</span><br><b style="border-top:1px solid #F0C9CB; display:inline-block; padding-top:6px; margin-top:4px">Total&nbsp;&nbsp;$252 / month</b></p>
         </div>
-        <p class="small" style="margin-top:12px" data-vi="Chi phí xây dựng một lần: 3 kỹ sư × 1 tháng, toàn bộ trên stack mã nguồn mở, không mua license nào." data-en="One-off build cost: 3 engineers × 1 month, entirely on an open-source stack, with zero licence spend."></p>
+        <p class="small" style="margin-top:12px" data-vi="Chi phí xây dựng: nhân sự $2.250 (3 kỹ sư × $2.000 × 3/8 bán thời gian), phần mềm $600 (3 user × $200 Kiro Power Plan). Stack mã nguồn mở, không mua license." data-en="Build cost: engineer $2,250 (3 engineers × $2,000 × 3/8 part-time), software $600 (3 users × $200 Kiro Power Plan). Open-source stack, zero licence cost."></p>
       </div>
       <div class="calc">
         <div class="calc-head">
