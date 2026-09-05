@@ -3,11 +3,9 @@
 **Deck:** 15 slide
 **Cách dùng file này:** phần chữ thường là lời nói. Phần trong ngoặc vuông là ghi chú thao tác, không đọc.
 
-**Thời lượng — đọc kỹ chỗ này trước khi tập:**
+**Thời lượng:** khoảng **20 phút** nói + hỏi đáp. Nhãn thời lượng ở mỗi phần là số đo thật, không phải ước lượng.
 
-Bản đầy đủ dưới đây dài khoảng **20 phút** nói. Nhãn thời lượng ở mỗi phần là số đo thật, không phải ước lượng.
-
-Nếu chỉ có 10–15 phút, đừng đọc hết. Xem mục **"Ba bản theo quỹ thời gian"** ở cuối file — có sẵn đường cắt cho bản 13 phút và bản 10 phút. Slide 4 và slide 5 là hai phần chiếm nhiều thời gian nhất, và cũng là hai phần co giãn được nhiều nhất.
+Đây là bản chính, trình bày đủ. Nếu tới hôm đó bị rút ngắn quỹ thời gian, cuối file có mục **"Đường cắt dự phòng"** với sẵn đường về 13 phút và 10 phút — chỉ dùng khi cần.
 
 ---
 
@@ -401,9 +399,11 @@ Ba slide có thể lướt: slide 7 tính năng, slide 9 quản trị, slide 14 
 
 ---
 
-# Ba bản theo quỹ thời gian
+# Đường cắt dự phòng
 
-Bản đầy đủ là 20 phút. Dưới đây là hai bản rút gọn, cắt theo thứ tự này.
+Chỉ dùng khi bị rút quỹ thời gian tại chỗ. Mặc định là trình bày bản đầy đủ 20 phút ở trên.
+
+Cắt theo đúng thứ tự dưới đây.
 
 ## Bản 13 phút
 
