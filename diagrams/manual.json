@@ -2,7 +2,7 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "Today — One Ticket, Four Systems, Sixty Minutes",
+    "title": "Today — One Ticket, Four Systems, Twenty Minutes",
     "locale": "en",
     "quality_profile": "showcase",
     "visual_preset": "signal-flow",
@@ -100,17 +100,17 @@
     {
       "from": 148,
       "to": 216,
-      "label": "0 to 15 min"
+      "label": "0 to 5 min"
     },
     {
       "from": 220,
       "to": 384,
-      "label": "15 to 40 min"
+      "label": "5 to 13 min"
     },
     {
       "from": 388,
       "to": 552,
-      "label": "40 to 60 min"
+      "label": "13 to 20 min"
     }
   ],
   "messages": [
@@ -215,7 +215,7 @@
       "from": "eng",
       "to": "support",
       "y": 508,
-      "label": "an hour later, a hypothesis",
+      "label": "twenty minutes later, a hypothesis",
       "variant": "return"
     },
     {
@@ -312,7 +312,7 @@
       "dot": "slate",
       "title": "And the customer waits",
       "items": [
-        "An hour of carrying one trace ID between four tabs",
+        "Twenty minutes of carrying one trace ID between four tabs",
         "Findings end up in a chat thread, not a searchable store",
         "The same incident next week starts from scratch"
       ]
