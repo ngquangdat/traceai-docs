@@ -176,10 +176,6 @@ So với chi phí vận hành thật là hai trăm năm hai đô.
 
 Tỷ lệ hoàn vốn khoảng mười một phẩy hai lần.
 
-[Dừng một nhịp]
-
-Tôi cố tình không lấy con số đẹp hơn. Nếu tôi lấy mốc thủ công là sáu mươi phút như bản đầu, ROI sẽ ra ba mươi tám lần. Nhưng hai mươi phút là con số tôi tin hơn, nên tôi để hai mươi.
-
 ---
 
 ## Chi phí — Slide 11 (khoảng 1 phút 30)
