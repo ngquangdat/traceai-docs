@@ -21,11 +21,11 @@ Một khách hàng gọi lên tổng đài, nói là đặt lệnh không đư�
 
 Thế là bạn ấy đẩy ticket sang cho dev. Dev mở Sentry, thấy stack trace. Copy trace ID, dán sang Kibana, lọc log. Rồi mở Bitbucket tìm đoạn code. Rồi quay lại đoán xem khách đã bấm gì trước đó.
 
-Bốn hệ thống, bốn tab trình duyệt, và trung bình khoảng hai mươi phút cho mỗi lần như vậy.
+Bốn hệ thống, bốn tab trình duyệt, và trung bình khoảng sáu mươi phút cho mỗi lần như vậy.
 
 [Bấm sang slide 2]
 
-Cái tôi mang tới hôm nay là TraceAI. Nó rút hai mươi phút đó xuống còn ba phút, với chi phí ba mươi hai xu một lần điều tra.
+Cái tôi mang tới hôm nay là TraceAI. Nó rút một tiếng đó xuống còn ba phút, với chi phí ba mươi hai xu một lần điều tra.
 
 ---
 
@@ -217,15 +217,15 @@ Số lần chạy, khoảng tám trăm một tháng.
 
 **Cái là ước tính:**
 
-Mốc thủ công hai mươi phút. Tôi lấy từ một mẫu các sự cố xử lý tay, không phải thí nghiệm đối chứng. Nếu ban giám khảo cho rằng con số thật khác đi thì kết quả sẽ dịch theo.
+Mốc thủ công sáu mươi phút. Tôi lấy từ một mẫu các sự cố xử lý tay, không phải thí nghiệm đối chứng. Nếu ban giám khảo cho rằng con số thật khác đi thì kết quả sẽ dịch theo.
 
-Từ đó ra: mỗi lần tiết kiệm mười bảy phút. Tám trăm lần một tháng là hai trăm hai mươi bảy giờ. Chia cho một trăm sáu mươi giờ công một tháng, tương đương một phẩy bốn hai FTE.
+Từ đó ra: mỗi lần tiết kiệm năm mươi bảy phút. Tám trăm lần một tháng là bảy trăm sáu mươi giờ. Chia cho một trăm sáu mươi giờ công một tháng, tương đương bốn phẩy bảy lăm FTE.
 
-Quy ra tiền theo đơn giá hai nghìn đô một FTE tháng, được khoảng hai nghìn tám trăm ba ba đô mỗi tháng.
+Quy ra tiền theo đơn giá hai nghìn đô một FTE tháng, được khoảng chín nghìn năm trăm đô mỗi tháng.
 
 So với chi phí vận hành thật là hai trăm năm hai đô.
 
-Tỷ lệ hoàn vốn khoảng mười một phẩy hai lần.
+Tỷ lệ hoàn vốn khoảng ba mươi tám lần.
 
 ---
 
@@ -257,7 +257,7 @@ Bên phải là công cụ tính. Ban giám khảo có thể kéo số lần đi
 
 Điểm cần nhìn là hình dạng của đường chi phí. Phần LLM luôn là mười tám xu mỗi lần, ở mọi khối lượng. Không có bậc license, không tính theo ghế. Chỉ hạ tầng cố định là được chia đều, nên càng dùng nhiều thì đơn giá trọn gói càng rẻ.
 
-Và với chi phí xây hai nghìn tám trăm năm mươi đô, so với giá trị tiết kiệm hai nghìn tám trăm ba ba một tháng, thì hoàn vốn trong tháng đầu.
+Và với chi phí xây hai nghìn tám trăm năm mươi đô, so với giá trị tiết kiệm chín nghìn năm trăm một tháng, thì hoàn vốn trong chín ngày đầu vận hành.
 
 ---
 
@@ -335,9 +335,17 @@ Tôi xin hết. Rất mong nhận được câu hỏi từ ban giám khảo.
 
 ## Câu chắc chắn sẽ bị hỏi
 
-**"Làm sao biết mốc hai mươi phút là đúng?"**
+**"Làm sao biết mốc sáu mươi phút là đúng?"**
 
-Đây là ước tính từ mẫu sự cố xử lý tay, tôi không giấu điều đó. Nhưng ROI vẫn dương rất rộng. Kể cả nếu mốc thật chỉ là tám phút, tức là chỉ tiết kiệm năm phút mỗi lần, thì vẫn ra khoảng sáu mươi bảy giờ một tháng, giá trị tám trăm ba tám đô, ROI vẫn trên ba lần. Mốc thủ công phải rơi xuống khoảng bốn phút rưỡi thì mới hòa vốn — mà bốn phút rưỡi thì gần bằng đúng thời gian máy chạy, tức là gần như không còn gì để tiết kiệm.
+Đây là ước tính từ mẫu sự cố xử lý tay, tôi không giấu điều đó. Nên cách tôi kiểm tra là thử hạ mốc xuống xem kết luận có đổ không.
+
+Nếu mốc thật chỉ là hai mươi phút, tức là một phần ba con số tôi đưa, thì ra bảy trăm sáu mươi giờ giảm còn hai trăm hai mươi bảy giờ, giá trị hai nghìn tám trăm ba ba đô, ROI vẫn mười một phẩy hai lần.
+
+Nếu mốc chỉ là mười phút thì ROI còn bốn phẩy sáu lần. Vẫn dương.
+
+Điểm hòa vốn rơi ở mốc thủ công khoảng bốn phút rưỡi. Mà bốn phút rưỡi thì gần bằng đúng thời gian máy chạy, tức là gần như không còn gì để tiết kiệm.
+
+Nói cách khác, con số tuyệt đối phụ thuộc giả định, nhưng kết luận "đáng làm" thì không đổ kể cả khi tôi sai ba lần.
 
 **"Nếu AI trả lời sai thì sao?"**
 
@@ -451,10 +459,10 @@ Trả lời ngắn rồi quay lại mạch. Nếu câu hỏi rơi đúng vào sl
 
 Chủ động nói cái nào là ước tính trước khi bị hỏi. Ban giám khảo tin người tự vạch ra giới hạn của mình hơn người trình bày toàn số đẹp.
 
-Đừng nói "tiết kiệm được rất nhiều". Nói "hai trăm hai mươi bảy giờ, dựa trên giả định mốc thủ công hai mươi phút".
+Đừng nói "tiết kiệm được rất nhiều". Nói "bảy trăm sáu mươi giờ, dựa trên giả định mốc thủ công sáu mươi phút".
 
 **Ba câu phải nói bằng được, dù có bị cắt thời gian thế nào**
 
-1. Hai mươi phút xuống ba phút, ba mươi hai xu một lần.
+1. Một tiếng xuống ba phút, ba mươi hai xu một lần.
 2. Mô hình không bao giờ thấy dữ liệu khách hàng thật.
-3. Hoàn vốn trong tháng đầu, ROI mười một phẩy hai lần.
+3. Hoàn vốn trong tuần đầu, ROI ba mươi tám lần.
