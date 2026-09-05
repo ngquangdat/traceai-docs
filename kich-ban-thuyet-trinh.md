@@ -1,12 +1,17 @@
 # TraceAI — Kịch bản thuyết trình
 
-**Thời lượng:** 13–15 phút nói + 3–5 phút hỏi đáp
 **Deck:** 15 slide
 **Cách dùng file này:** phần chữ thường là lời nói. Phần trong ngoặc vuông là ghi chú thao tác, không đọc.
 
+**Thời lượng — đọc kỹ chỗ này trước khi tập:**
+
+Bản đầy đủ dưới đây dài khoảng **20 phút** nói. Nhãn thời lượng ở mỗi phần là số đo thật, không phải ước lượng.
+
+Nếu chỉ có 10–15 phút, đừng đọc hết. Xem mục **"Ba bản theo quỹ thời gian"** ở cuối file — có sẵn đường cắt cho bản 13 phút và bản 10 phút. Slide 4 và slide 5 là hai phần chiếm nhiều thời gian nhất, và cũng là hai phần co giãn được nhiều nhất.
+
 ---
 
-## Mở đầu — Slide 1 (khoảng 1 phút)
+## Mở đầu — Slide 1 · 1 phút
 
 [Đứng ở slide bìa, chưa bấm gì]
 
@@ -26,7 +31,7 @@ Cái tôi mang tới hôm nay là TraceAI. Nó rút hai mươi phút đó xuốn
 
 ---
 
-## Bài toán — Slide 2 (khoảng 1 phút 30)
+## Bài toán — Slide 2 · 1 phút
 
 [Slide 2, sơ đồ luồng thủ công]
 
@@ -42,7 +47,7 @@ Cho nên đây không phải bài toán thiếu dữ liệu. Đây là bài toá
 
 ---
 
-## Giải pháp — Slide 3 (khoảng 1 phút 30)
+## Giải pháp — Slide 3 · 1 phút 30
 
 [Slide 3]
 
@@ -60,7 +65,7 @@ Thứ ba, khép vòng. Chọn một khuyến nghị, hệ thống tự tạo bra
 
 ---
 
-## Kiến trúc — Slide 4 (khoảng 2 phút)
+## Kiến trúc — Slide 4 · 3 phút 30
 
 [Slide 4. Sơ đồ này có ba lớp xem sẵn, bấm lần lượt theo ba đoạn dưới đây]
 
@@ -104,23 +109,41 @@ Tôi quyết định mô hình quyền này ngay từ ngày đầu. Nếu làm n
 
 ---
 
-## Một lần điều tra — Slide 5 (khoảng 1 phút 30)
+## Một lần điều tra — Slide 5 · 3 phút 15
 
 [Slide 5, sơ đồ sequence]
 
 Slide này trả lời câu hỏi mà tôi đoán ban giám khảo sẽ hỏi: sao rẻ được như vậy?
 
-Bí quyết nằm ở chỗ thu hẹp dần.
+Câu trả lời là TraceAI lấy log theo thứ tự thu hẹp dần. Bốn bước, mỗi bước đầu vào đã ít hơn bước trước.
 
-Agent không bao giờ đọc cả biển log. Nó lọc theo mức lỗi trước, còn vài trăm dòng. Rồi lọc theo trace ID, còn vài chục. Rồi xác định vị trí trong code, chỉ lấy đúng file đó. Rồi mở cửa sổ cộng trừ hai phút quanh thời điểm lỗi.
+**Bước một, tìm log lỗi.** Chỉ lấy mức ERROR và WARN. Trong hàng triệu dòng log một ngày, số dòng thực sự là lỗi chiếm tỉ lệ rất nhỏ. Nên ngay bộ lọc đầu tiên đã cắt đi phần lớn.
 
-Mỗi bước nhỏ hơn bước trước. Cho nên một lần điều tra chỉ tốn khoảng ba mươi hai nghìn token đầu vào, tức là mười tám xu tiền mô hình.
+**Bước hai, nếu có trace ID thì chỉ tìm theo trace ID đó.** Đây là bước thu hẹp mạnh nhất. Chỉ những dòng log thuộc đúng trace của sự cố mới được lấy, và lấy xuyên suốt tất cả service mà request đó đi qua. Một request, không phải một service.
 
-Nếu tôi làm theo kiểu dồn hết log vào rồi bảo mô hình tự tìm, thì chi phí sẽ gấp mấy chục lần mà kết quả còn tệ hơn. Cái khó không phải gọi được LLM, cái khó là biết đưa cho nó đúng thứ cần đưa.
+**Bước ba, tìm log ngữ cảnh theo vị trí trong code.** Từ dòng lỗi, qua stack trace, TraceAI biết lỗi phát sinh ở file nào hàm nào. Rồi mới tìm thêm các log liên quan quanh vị trí đó. Tức là tìm có chủ đích, không phải đọc bừa.
+
+**Bước bốn, tìm log theo khoảng thời gian.** Mở cửa sổ cộng trừ hai phút quanh thời điểm lỗi. Đủ để dựng lại câu chuyện của request, mà không phải kéo cả ngày về.
+
+[Dừng một nhịp]
+
+Kết quả là lượng log thực sự đi vào mô hình cho mỗi lần điều tra chỉ vài chục dòng, nhiều lắm là vài trăm dòng đã lọc. Không phải hàng triệu dòng.
+
+Quy ra token là khoảng ba mươi hai nghìn token đầu vào. Tức là mười tám xu tiền mô hình.
+
+Nếu làm theo kiểu dồn hết log vào rồi bảo mô hình tự tìm, chi phí sẽ gấp mấy chục lần mà kết quả còn tệ hơn, vì mô hình bị nhiễu. Cái khó không phải gọi được LLM. Cái khó là biết đưa cho nó đúng thứ cần đưa.
+
+**Một điều kiện tôi muốn nói thẳng.**
+
+Để cơ chế trace ID chạy tốt nhất, các service phải có tích hợp thư viện sinh và truyền trace ID xuyên suốt, tức là distributed tracing. Khi trace ID giữ được liền mạch qua các service, TraceAI lần theo đúng một luồng request duy nhất. Đó chính là thứ khiến lượng log đưa vào ít mà vẫn đủ để kết luận.
+
+Service nào chưa có trace ID xuyên suốt thì vẫn điều tra được, hệ thống lùi về tìm theo message cộng thời gian cộng tên service. Nhưng độ chính xác và độ gọn sẽ thấp hơn.
+
+Nói cách khác, TraceAI không bắt buộc phải có distributed tracing mới chạy. Nhưng service nào chuẩn hóa được trace ID thì hiệu quả trên service đó cao hơn hẳn. Đây cũng là một lý do để đẩy chuẩn hóa tracing rộng ra, vì giá trị thu về đo được ngay.
 
 ---
 
-## Hai chế độ — Slide 6 (khoảng 1 phút)
+## Hai chế độ — Slide 6 · 1 phút
 
 [Slide 6]
 
@@ -136,7 +159,7 @@ Quan trọng là hai chế độ này được chặn ở tầng middleware, kh�
 
 ---
 
-## Tính năng — Slide 7 (khoảng 45 giây)
+## Tính năng — Slide 7 · 40 giây
 
 [Slide 7, lướt nhanh]
 
@@ -148,7 +171,7 @@ Từ một công cụ phân tích ban đầu, nó đã thành một hệ sinh th
 
 ---
 
-## Quyền riêng tư — Slide 8 (khoảng 1 phút)
+## Quyền riêng tư — Slide 8 · 1 phút
 
 [Slide 8, sơ đồ PII masking]
 
@@ -164,7 +187,7 @@ Và toàn bộ chạy trên AWS Bedrock trong chính tài khoản AWS của TCBS
 
 ---
 
-## Quản trị — Slide 9 (khoảng 45 giây)
+## Quản trị — Slide 9 · 40 giây
 
 [Slide 9]
 
@@ -180,7 +203,7 @@ Giám sát thì mỗi lần chạy đều có telemetry về thời lượng và
 
 ---
 
-## Kết quả — Slide 10 (khoảng 2 phút)
+## Kết quả — Slide 10 · 1 phút 30
 
 [Slide 10 — slide quan trọng nhất, nói chậm lại]
 
@@ -208,7 +231,7 @@ Tỷ lệ hoàn vốn khoảng mười một phẩy hai lần.
 
 ---
 
-## Chi phí — Slide 11 (khoảng 1 phút 30)
+## Chi phí — Slide 11 · 1 phút 30
 
 [Slide 11]
 
@@ -240,7 +263,7 @@ Và với chi phí xây hai nghìn tám trăm năm mươi đô, so với giá tr
 
 ---
 
-## So sánh thị trường — Slide 12, 13 (khoảng 1 phút 30)
+## So sánh thị trường — Slide 12, 13 · 2 phút
 
 [Slide 12, bảng so sánh]
 
@@ -270,7 +293,7 @@ Và có một ràng buộc cứng nữa: dữ liệu khách hàng không đượ
 
 ---
 
-## Mở rộng và lộ trình — Slide 14 (khoảng 1 phút)
+## Mở rộng và lộ trình — Slide 14 · 1 phút
 
 [Slide 14]
 
@@ -292,7 +315,7 @@ Bản tin ưu tiên: tổng hợp hằng ngày, chấm điểm theo mức ảnh 
 
 ---
 
-## Kết — Slide 15 (khoảng 45 giây)
+## Kết — Slide 15 · 1 phút
 
 [Slide 15]
 
@@ -344,6 +367,16 @@ Ba phần tám thời gian, quy đổi ra là khoảng một tháng công cho c�
 
 PII được che bắt buộc trước mọi lời gọi LLM, không có đường vòng. Bảng ánh xạ chỉ tồn tại trong RAM. Mô hình chạy trên Bedrock trong tài khoản AWS của TCBS, dữ liệu không ra khỏi ranh giới đám mây. Và agent chạy bằng token của người hỏi nên không đọc được nhiều hơn người đó được phép đọc.
 
+**"Hệ thống có phụ thuộc vào việc service phải có distributed tracing không?"**
+
+Có phụ thuộc, nhưng không phải điều kiện bắt buộc.
+
+Khi service có trace ID xuyên suốt, TraceAI lần theo đúng một luồng request duy nhất. Đó là lý do lượng log đưa vào mô hình ít mà vẫn đủ kết luận.
+
+Service chưa có thì hệ thống lùi về tìm theo message, thời gian và tên service. Vẫn ra kết quả, nhưng độ chính xác và độ gọn thấp hơn, và chi phí mỗi lần cao hơn vì phải đọc nhiều log hơn.
+
+Nên tôi nhìn nó theo hướng ngược lại: đây là một lý do cụ thể để đẩy chuẩn hóa tracing rộng ra. Service nào chuẩn hóa xong thì giá trị thu về đo được ngay trên chính service đó.
+
 **"Sao chọn LangGraph mà không tự viết vòng lặp?"**
 
 Cái tôi cần ở framework chỉ có hai thứ: quản lý trạng thái theo bước, và checkpoint để phục hồi. LangGraph cho sẵn cả hai. Tự viết thì cũng ra, nhưng mất thêm thời gian mà không tạo thêm giá trị nào cho bài toán này. Phần logic riêng của TraceAI nằm ở tool registry và ở chiến lược thu hẹp, không nằm ở vòng lặp.
@@ -366,15 +399,49 @@ Ba slide cần chậm và rõ: slide 8 về PII, slide 10 về kết quả, slid
 
 Ba slide có thể lướt: slide 7 tính năng, slide 9 quản trị, slide 14 mở rộng và lộ trình.
 
-**Nếu bị hụt thời gian**
+---
 
-Cắt slide 7 và slide 14 trước, được khoảng một phút rưỡi.
+# Ba bản theo quỹ thời gian
 
-Còn thiếu nữa thì rút slide 4 xuống một lớp. Bỏ lớp 1 và lớp 2, chỉ nói lớp 3 về quyền và ranh giới dữ liệu — đó là lớp ban giám khảo cần nghe nhất. Một câu thay thế cho hai lớp bị bỏ: "Lõi là một vòng lặp agent trên LangGraph, lấy bằng chứng từ bốn hệ thống khâu lại bằng trace ID."
+Bản đầy đủ là 20 phút. Dưới đây là hai bản rút gọn, cắt theo thứ tự này.
 
-Đường cùng thì gộp slide 4 với slide 5: "Agent chạy bằng quyền của chính người hỏi, và cách nó tiết kiệm là thu hẹp dần qua từng bước lọc."
+## Bản 13 phút
 
-Không được cắt slide 8, 10, 11.
+| Cắt gì | Tiết kiệm |
+|---|---|
+| Slide 4: bỏ lớp 1 và lớp 2, chỉ nói lớp 3 | 2 phút |
+| Slide 5: bỏ phần điều kiện distributed tracing, đẩy sang Q&A | 1 phút |
+| Slide 7 (tính năng): bỏ hẳn | 40 giây |
+| Slide 9 (quản trị): bỏ hẳn, nội dung đã nằm trong slide 4 và 8 | 40 giây |
+| Slide 12–13: bỏ đoạn nói từng đối thủ, chỉ nói dòng kết | 45 giây |
+| Slide 14: bỏ phần mở rộng, chỉ đọc 4 hướng roadmap | 30 giây |
+
+Câu thay cho lớp 1 và 2 của slide 4: *"Lõi là một vòng lặp agent trên LangGraph, có ngân sách vòng lặp và bước kết luận bắt buộc. Nó lấy bằng chứng từ bốn hệ thống, khâu lại bằng trace ID."*
+
+Câu thay cho đoạn đối thủ ở slide 12: *"Ba sản phẩm gần nhất, cái rẻ nhất thì không thấy Sentry, Matomo và mã nguồn, cái thấy nhiều nhất thì năm nghìn hai một tháng. Không ai đi từ hành vi khách hàng tới dòng code."*
+
+## Bản 10 phút
+
+Cắt tiếp từ bản 13 phút:
+
+| Cắt thêm | Tiết kiệm |
+|---|---|
+| Slide 5: gộp bước 3 và bước 4 thành một câu | 30 giây |
+| Slide 3: bỏ điểm thứ ba (khép vòng), nói ở slide 7 hoặc bỏ | 30 giây |
+| Slide 2: rút còn hai câu, vì slide 1 đã kể câu chuyện rồi | 30 giây |
+| Slide 6 (hai chế độ): rút còn ba câu | 30 giây |
+
+Câu gộp bước 3 và 4 của slide 5: *"Rồi thu hẹp tiếp theo vị trí trong code qua stack trace, và theo cửa sổ cộng trừ hai phút quanh thời điểm lỗi."*
+
+## Không bao giờ cắt
+
+Slide 1 (con số mở), slide 8 (PII), slide 10 (kết quả), slide 11 (chi phí), và lớp 3 của slide 4 (quyền và ranh giới dữ liệu).
+
+Đây là năm chỗ quyết định điểm. Mọi thứ khác đều có thể co lại.
+
+---
+
+# Ghi chú thêm
 
 **Nếu bị hỏi cắt ngang giữa chừng**
 
