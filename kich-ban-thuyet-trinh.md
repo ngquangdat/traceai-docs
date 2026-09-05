@@ -1,6 +1,6 @@
 # TraceAI — Kịch bản thuyết trình
 
-**Thời lượng:** 12–14 phút nói + 3–5 phút hỏi đáp
+**Thời lượng:** 13–15 phút nói + 3–5 phút hỏi đáp
 **Deck:** 15 slide
 **Cách dùng file này:** phần chữ thường là lời nói. Phần trong ngoặc vuông là ghi chú thao tác, không đọc.
 
@@ -60,17 +60,47 @@ Thứ ba, khép vòng. Chọn một khuyến nghị, hệ thống tự tạo bra
 
 ---
 
-## Kiến trúc — Slide 4 (khoảng 1 phút)
+## Kiến trúc — Slide 4 (khoảng 2 phút)
 
-[Slide 4]
+[Slide 4. Sơ đồ này có ba lớp xem sẵn, bấm lần lượt theo ba đoạn dưới đây]
 
-Đây là kiến trúc. Tôi sẽ không đi vào từng hộp, chỉ nói một điểm quan trọng nhất khi đưa AI vào ngân hàng.
+Đây là kiến trúc runtime. Tôi sẽ đi theo ba lớp, mỗi lớp trả lời một câu hỏi.
 
-Agent này không có quyền riêng của nó.
+**[Bấm lớp 1 — Analysis request path]**
 
-Mọi lời gọi tới Kibana, Sentry, Matomo hay Bitbucket đều đi bằng token của chính người đang hỏi. Nghĩa là nếu bạn không được phép đọc log của một service nào đó, thì agent chạy cho bạn cũng không đọc được.
+Câu thứ nhất: một yêu cầu đi qua đâu.
 
-Không có super-token dùng chung nằm ở đâu cả. Đây là thứ tôi quyết định ngay từ ngày đầu, vì nếu làm ngược lại thì sau này gỡ ra rất khó.
+Người dùng vào TraceAI Web, viết bằng React 19. Đăng nhập qua Entra ID, trả về JWT có kèm vai trò. FastAPI nhận request, kiểm vai, rồi đẩy xuống AIAnalyzer.
+
+AIAnalyzer là lõi, dựng trên LangGraph. Vòng lặp của nó là: lập kế hoạch, gọi công cụ, kiểm chứng kết quả, rồi mới sinh báo cáo. Trạng thái từng bước ghi checkpoint xuống PostgreSQL, nên một phân tích đang chạy dở mà process chết thì chạy tiếp được, không phải làm lại từ đầu.
+
+Có hai cái chốt tôi đặt trong vòng lặp này. Một là ngân sách vòng lặp, agent không được gọi công cụ vô hạn. Hai là bước kết luận bắt buộc: khi chạm ngưỡng, hệ thống tắt hết công cụ và ép agent phải chốt bằng cái nó đang có. Đây là cách tôi chặn kiểu agent chạy loạn rồi đốt tiền.
+
+Đầu ra không phải văn xuôi tự do. Nó là JSON được validate bằng Pydantic, có schema cố định, bắt buộc mỗi luận điểm phải kèm nguồn.
+
+**[Bấm lớp 2 — Cross-stack evidence]**
+
+Câu thứ hai: nó lấy bằng chứng ở đâu.
+
+Bốn hệ thống. Kibana cho log và APM span. Sentry cho lỗi frontend. Matomo cho hành vi người dùng. Bitbucket cho mã nguồn, commit và pull request.
+
+Thứ khâu bốn cái này lại là distributed trace ID. Và mắt xích khó nhất là nối frontend với backend, vì hai bên vốn không biết nhau. Chỗ đó tôi đi qua trường additional_data của Sentry, nơi có trace ID mà request đã mang theo. Nối được mắt xích đó thì cả chuỗi mới thông.
+
+Riêng phần mã nguồn thì không phải grep. Tôi dựng code graph bằng tree-sitter, biết hàm nào gọi hàm nào, nên đi từ dòng lỗi ngược lên caller hoặc xuôi xuống callee đều được.
+
+**[Bấm lớp 3 — Privacy boundary]**
+
+Câu thứ ba, và là câu quan trọng nhất với ngân hàng: quyền và dữ liệu.
+
+Agent này không có quyền riêng của nó. Mọi lời gọi tới bốn hệ thống kia đều đi bằng token của chính người đang hỏi. Nếu bạn không được phép đọc log của một service, thì agent chạy cho bạn cũng không đọc được. Không có super-token dùng chung nằm ở đâu cả. Token lưu thì mã hóa AES-256-GCM.
+
+Và mọi đường ra Bedrock đều bị chặn qua PIIMaskingLLM. Không có nhánh nào đi tắt. Phần này tôi nói kỹ hơn ở slide sau.
+
+[Chỉ vào khung bao ngoài của sơ đồ]
+
+Cái khung lớn bao quanh là ranh giới đám mây TCBS. Không có SaaS bên thứ ba nào nhìn thấy log hay mã nguồn của mình. Bedrock cũng nằm trong region, trong tài khoản AWS của mình.
+
+Tôi quyết định mô hình quyền này ngay từ ngày đầu. Nếu làm ngược lại, cho agent một tài khoản riêng cho tiện, thì sau này gỡ ra rất khó.
 
 ---
 
@@ -314,6 +344,14 @@ Ba phần tám thời gian, quy đổi ra là khoảng một tháng công cho c�
 
 PII được che bắt buộc trước mọi lời gọi LLM, không có đường vòng. Bảng ánh xạ chỉ tồn tại trong RAM. Mô hình chạy trên Bedrock trong tài khoản AWS của TCBS, dữ liệu không ra khỏi ranh giới đám mây. Và agent chạy bằng token của người hỏi nên không đọc được nhiều hơn người đó được phép đọc.
 
+**"Sao chọn LangGraph mà không tự viết vòng lặp?"**
+
+Cái tôi cần ở framework chỉ có hai thứ: quản lý trạng thái theo bước, và checkpoint để phục hồi. LangGraph cho sẵn cả hai. Tự viết thì cũng ra, nhưng mất thêm thời gian mà không tạo thêm giá trị nào cho bài toán này. Phần logic riêng của TraceAI nằm ở tool registry và ở chiến lược thu hẹp, không nằm ở vòng lặp.
+
+**"Nếu agent chạy loạn, gọi công cụ mãi không dừng thì sao?"**
+
+Có hai chốt. Ngân sách vòng lặp giới hạn số lần gọi công cụ. Và khi chạm ngưỡng thì có bước kết luận bắt buộc: hệ thống tắt hết công cụ, agent buộc phải chốt bằng dữ liệu đang có, hoặc khai là chưa đủ bằng chứng. Nên chi phí mỗi lần chạy có trần, không có trường hợp một request đốt hết ngân sách tháng.
+
 **"Nếu người xây nghỉ việc thì sao?"**
 
 Stack là công nghệ phổ thông: Python, FastAPI, PostgreSQL, React. Không có framework tự chế. Kiến trúc tool registry nên thêm nguồn dữ liệu là thêm một file, không phải đọc hiểu toàn hệ thống.
@@ -330,7 +368,11 @@ Ba slide có thể lướt: slide 7 tính năng, slide 9 quản trị, slide 14 
 
 **Nếu bị hụt thời gian**
 
-Cắt slide 7 và slide 14. Gộp slide 4 với slide 5 thành một câu: "Kiến trúc thì agent chạy bằng quyền của chính người hỏi, và cách nó tiết kiệm là thu hẹp dần qua từng bước lọc."
+Cắt slide 7 và slide 14 trước, được khoảng một phút rưỡi.
+
+Còn thiếu nữa thì rút slide 4 xuống một lớp. Bỏ lớp 1 và lớp 2, chỉ nói lớp 3 về quyền và ranh giới dữ liệu — đó là lớp ban giám khảo cần nghe nhất. Một câu thay thế cho hai lớp bị bỏ: "Lõi là một vòng lặp agent trên LangGraph, lấy bằng chứng từ bốn hệ thống khâu lại bằng trace ID."
+
+Đường cùng thì gộp slide 4 với slide 5: "Agent chạy bằng quyền của chính người hỏi, và cách nó tiết kiệm là thu hẹp dần qua từng bước lọc."
 
 Không được cắt slide 8, 10, 11.
 
