@@ -3,9 +3,25 @@
 **Deck:** 15 slide
 **Cách dùng file này:** phần chữ thường là lời nói. Phần trong ngoặc vuông là ghi chú thao tác, không đọc.
 
-**Thời lượng:** khoảng **20 phút** nói + hỏi đáp. Nhãn thời lượng ở mỗi phần là số đo thật, không phải ước lượng.
+**Thời lượng:** khoảng **17 phút** nói + hỏi đáp. Nhãn ở mỗi phần là số đo thật, không phải ước lượng.
 
-Đây là bản chính, trình bày đủ. Nếu tới hôm đó bị rút ngắn quỹ thời gian, cuối file có mục **"Đường cắt dự phòng"** với sẵn đường về 13 phút và 10 phút — chỉ dùng khi cần.
+**Đối tượng:** hội đồng cấp cao — CEO, HĐQT, Chairman. Bài này đã được cân theo đối tượng đó:
+
+| Nhóm nội dung | Thời lượng | Tỉ lệ |
+|---|---|---|
+| Tiền (kết quả, chi phí, so sánh) | 4,7 phút | 27% |
+| Câu chuyện (bài toán, giải pháp) | 4,6 | 27% |
+| Cơ chế kỹ thuật | 3,5 | 21% |
+| Rủi ro và kiểm soát | 2,5 | 14% |
+| Chiến lược | 1,9 | 11% |
+
+**Mục tiêu:** báo cáo kết quả. Không xin phê duyệt, không xin ngân sách. Nếu hội đồng hỏi "vậy anh muốn gì" thì trả lời thẳng: hôm nay em báo cáo để hội đồng nắm hiện trạng, chưa đề xuất gì.
+
+**Ba nguyên tắc khi nói với hội đồng này:**
+
+1. Không đọc tên công nghệ. Nói "mô hình AI" chứ không nói tên mô hình; nói "bản đồ mã nguồn" chứ không nói tên thư viện. Chi tiết kỹ thuật nằm ở **Phụ lục kỹ thuật** cuối file, chỉ rút ra khi bị hỏi.
+2. Mọi con số phải đi kèm việc nó là đo được hay ước tính. Hội đồng tin người tự vạch giới hạn hơn người trình bày toàn số đẹp.
+3. Khi bí, quay về ba thứ họ quan tâm: tiền, rủi ro, và ai chịu trách nhiệm.
 
 ---
 
@@ -15,17 +31,17 @@
 
 Kính chào ban giám khảo.
 
-Tôi muốn bắt đầu bằng một tình huống mà anh chị em kỹ thuật ở đây chắc ai cũng từng gặp.
+Em muốn bắt đầu bằng một tình huống mà anh chị em kỹ thuật ở đây chắc ai cũng từng gặp.
 
 Một khách hàng gọi lên tổng đài, nói là đặt lệnh không được. Bạn Support nhấc máy. Câu hỏi đầu tiên bạn ấy phải trả lời là: lỗi này của đội nào? Không biết. Câu thứ hai: có bao nhiêu khách đang bị như vậy? Cũng không biết.
 
-Thế là bạn ấy đẩy ticket sang cho dev. Dev mở Sentry, thấy stack trace. Copy trace ID, dán sang Kibana, lọc log. Rồi mở Bitbucket tìm đoạn code. Rồi quay lại đoán xem khách đã bấm gì trước đó.
+Thế là bạn ấy đẩy ticket sang cho dev. Dev mở Sentry, thấy thông báo lỗi. Chép mã truy vết, dán sang Kibana, lọc log. Rồi mở Bitbucket tìm đoạn code. Rồi quay lại đoán xem khách đã bấm gì trước đó.
 
 Bốn hệ thống, bốn tab trình duyệt, và trung bình khoảng sáu mươi phút cho mỗi lần như vậy.
 
 [Bấm sang slide 2]
 
-Cái tôi mang tới hôm nay là TraceAI. Nó rút một tiếng đó xuống còn ba phút, với chi phí ba mươi hai xu một lần điều tra.
+Cái em mang tới hôm nay là TraceAI. Nó rút một tiếng đó xuống còn ba phút, với chi phí ba mươi hai xu một lần điều tra.
 
 ---
 
@@ -33,11 +49,11 @@ Cái tôi mang tới hôm nay là TraceAI. Nó rút một tiếng đó xuống c
 
 [Slide 2, sơ đồ luồng thủ công]
 
-Sơ đồ này là quy trình hiện tại, tôi vẽ lại đúng như nó đang diễn ra.
+Sơ đồ này là quy trình hiện tại, em vẽ lại đúng như nó đang diễn ra.
 
 Nhìn từ trái sang phải sẽ thấy vấn đề không nằm ở chỗ nào thiếu công cụ. Chúng ta có đủ cả: Sentry cho lỗi frontend, Kibana và APM cho log backend, Matomo cho hành vi người dùng, Bitbucket cho mã nguồn.
 
-Vấn đề là bốn hệ thống này không nói chuyện với nhau. Người kỹ sư chính là sợi dây nối. Anh ta phải tự copy trace ID từ chỗ này sang chỗ kia, tự nhớ mình đang tìm gì, tự ghép các mảnh lại.
+Vấn đề là bốn hệ thống này không nói chuyện với nhau. Người kỹ sư chính là sợi dây nối. Anh ta phải tự chép mã truy vết từ chỗ này sang chỗ kia, tự nhớ mình đang tìm gì, tự ghép các mảnh lại.
 
 Và có một câu hỏi mà không hệ thống nào trả lời được: bao nhiêu khách hàng đang bị ảnh hưởng? Đó lại đúng là câu Support cần nhất để trả lời khách.
 
@@ -49,95 +65,57 @@ Cho nên đây không phải bài toán thiếu dữ liệu. Đây là bài toá
 
 [Slide 3]
 
-TraceAI không phải thêm một cái dashboard nữa. Nếu tôi làm dashboard thì tôi chỉ đang tạo ra tab thứ năm cho mọi người mở.
+TraceAI không phải thêm một cái dashboard nữa. Nếu em làm dashboard thì em chỉ đang tạo ra tab thứ năm cho mọi người mở.
 
 Nó là một agent. Nghĩa là nó tự chọn công cụ, tự quyết định bước tiếp theo dựa trên cái nó vừa đọc được.
 
-Ba điểm tôi muốn nhấn.
+Ba điểm em muốn nhấn.
 
-Thứ nhất, xuyên tầng. Một trace ID chạy suốt từ lỗi frontend, qua từng service backend mà request đó đi qua, tới hành vi người dùng và dòng code cụ thể. Đây là thứ mà không sản phẩm nào ngoài thị trường làm được, vì không ai có sẵn bốn nguồn dữ liệu nội bộ của mình.
+Thứ nhất, xuyên tầng. Một mã truy vết chạy suốt từ lỗi trên màn hình khách hàng, qua từng hệ thống backend mà yêu cầu đó đi qua, tới hành vi người dùng và dòng code cụ thể. Đây là thứ mà không sản phẩm nào ngoài thị trường làm được, vì không ai có sẵn bốn nguồn dữ liệu nội bộ của mình.
 
-Thứ hai, mọi kết luận đều gắn với bằng chứng. Không có câu nào là suy đoán. Mỗi nhận định đều trỏ về một dòng log thật hoặc một file kèm số dòng. Và nếu thiếu bằng chứng, agent buộc phải nói thẳng là thiếu, chứ không được bịa ra. Cái này tôi ràng buộc bằng schema ở đầu ra chứ không phải nhắc nhở trong prompt.
+Thứ hai, mọi kết luận đều gắn với bằng chứng. Không có câu nào là suy đoán. Mỗi nhận định đều trỏ về một dòng log thật hoặc một file kèm số dòng. Và nếu thiếu bằng chứng, agent buộc phải nói thẳng là thiếu, chứ không được bịa ra. Cái này em ràng buộc bằng chính cấu trúc đầu ra của hệ thống, chứ không phải bằng cách dặn dò mô hình.
 
-Thứ ba, khép vòng. Chọn một khuyến nghị, hệ thống tự tạo branch, commit và pull request nháp trên Bitbucket. Phần này tôi nói thật là mới xử lý được các sửa đơn giản, và quyền merge luôn thuộc về con người.
+Thứ ba, khép vòng. Chọn một khuyến nghị, hệ thống tự soạn sẵn một bản sửa nháp trên kho mã nguồn. Phần này em nói thật là mới xử lý được các sửa đơn giản, và quyền merge luôn thuộc về con người.
 
 ---
 
-## Kiến trúc — Slide 4 · 3 phút 30
+## Kiến trúc — Slide 4 · 1 phút 15
 
-[Slide 4. Sơ đồ này có ba lớp xem sẵn, bấm lần lượt theo ba đoạn dưới đây]
+[Slide 4]
 
-Đây là kiến trúc runtime. Tôi sẽ đi theo ba lớp, mỗi lớp trả lời một câu hỏi.
+Sơ đồ này là kiến trúc hệ thống. Em sẽ không đi vào từng hộp, chỉ nói ba điều em nghĩ hội đồng cần nghe.
 
-**[Bấm lớp 1 — Analysis request path]**
+**Thứ nhất, hệ thống không có quyền riêng của nó.** Mọi lời gọi tới bốn nguồn dữ liệu đều đi bằng quyền của chính người đang hỏi. Nếu một bạn Support không được phép đọc dữ liệu của một mảng nào đó, thì hệ thống chạy cho bạn ấy cũng không đọc được. Không có tài khoản quyền cao dùng chung nằm ở đâu cả.
 
-Câu thứ nhất: một yêu cầu đi qua đâu.
-
-Người dùng vào TraceAI Web, viết bằng React 19. Đăng nhập qua Entra ID, trả về JWT có kèm vai trò. FastAPI nhận request, kiểm vai, rồi đẩy xuống AIAnalyzer.
-
-AIAnalyzer là lõi, dựng trên LangGraph. Vòng lặp của nó là: lập kế hoạch, gọi công cụ, kiểm chứng kết quả, rồi mới sinh báo cáo. Trạng thái từng bước ghi checkpoint xuống PostgreSQL, nên một phân tích đang chạy dở mà process chết thì chạy tiếp được, không phải làm lại từ đầu.
-
-Có hai cái chốt tôi đặt trong vòng lặp này. Một là ngân sách vòng lặp, agent không được gọi công cụ vô hạn. Hai là bước kết luận bắt buộc: khi chạm ngưỡng, hệ thống tắt hết công cụ và ép agent phải chốt bằng cái nó đang có. Đây là cách tôi chặn kiểu agent chạy loạn rồi đốt tiền.
-
-Đầu ra không phải văn xuôi tự do. Nó là JSON được validate bằng Pydantic, có schema cố định, bắt buộc mỗi luận điểm phải kèm nguồn.
-
-**[Bấm lớp 2 — Cross-stack evidence]**
-
-Câu thứ hai: nó lấy bằng chứng ở đâu.
-
-Bốn hệ thống. Kibana cho log và APM span. Sentry cho lỗi frontend. Matomo cho hành vi người dùng. Bitbucket cho mã nguồn, commit và pull request.
-
-Thứ khâu bốn cái này lại là distributed trace ID. Và mắt xích khó nhất là nối frontend với backend, vì hai bên vốn không biết nhau. Chỗ đó tôi đi qua trường additional_data của Sentry, nơi có trace ID mà request đã mang theo. Nối được mắt xích đó thì cả chuỗi mới thông.
-
-Riêng phần mã nguồn thì không phải grep. Tôi dựng code graph bằng tree-sitter, biết hàm nào gọi hàm nào, nên đi từ dòng lỗi ngược lên caller hoặc xuôi xuống callee đều được.
-
-**[Bấm lớp 3 — Privacy boundary]**
-
-Câu thứ ba, và là câu quan trọng nhất với ngân hàng: quyền và dữ liệu.
-
-Agent này không có quyền riêng của nó. Mọi lời gọi tới bốn hệ thống kia đều đi bằng token của chính người đang hỏi. Nếu bạn không được phép đọc log của một service, thì agent chạy cho bạn cũng không đọc được. Không có super-token dùng chung nằm ở đâu cả. Token lưu thì mã hóa AES-256-GCM.
-
-Và mọi đường ra Bedrock đều bị chặn qua PIIMaskingLLM. Không có nhánh nào đi tắt. Phần này tôi nói kỹ hơn ở slide sau.
+**Thứ hai, dữ liệu không rời khỏi nhà.**
 
 [Chỉ vào khung bao ngoài của sơ đồ]
 
-Cái khung lớn bao quanh là ranh giới đám mây TCBS. Không có SaaS bên thứ ba nào nhìn thấy log hay mã nguồn của mình. Bedrock cũng nằm trong region, trong tài khoản AWS của mình.
+Cái khung lớn này là ranh giới đám mây của TCBS. Mô hình AI chạy trong chính tài khoản AWS của mình. Không có nhà cung cấp bên ngoài nào nhìn thấy log hay mã nguồn của chúng ta.
 
-Tôi quyết định mô hình quyền này ngay từ ngày đầu. Nếu làm ngược lại, cho agent một tài khoản riêng cho tiện, thì sau này gỡ ra rất khó.
+**Thứ ba, hệ thống có phanh.** Nó không được phép chạy vô hạn. Có giới hạn số bước, và khi chạm ngưỡng thì buộc phải kết luận bằng dữ liệu đang có. Nên chi phí mỗi lần chạy luôn có trần — không có chuyện một yêu cầu đốt hết ngân sách tháng.
+
+Phần còn lại của sơ đồ là cách các thành phần nói chuyện với nhau. Nếu hội đồng muốn đi sâu, em có phần chi tiết để trả lời riêng.
 
 ---
 
-## Một lần điều tra — Slide 5 · 3 phút 15
+## Một lần điều tra — Slide 5 · 1 phút 15
 
-[Slide 5, sơ đồ sequence]
+[Slide 5]
 
-Slide này trả lời câu hỏi mà tôi đoán ban giám khảo sẽ hỏi: sao rẻ được như vậy?
+Slide này trả lời một câu mà em nghĩ thế nào cũng có người hỏi: ba mươi hai xu một lần điều tra, có thật không, hay là có cắt xén gì đó.
 
-Câu trả lời là TraceAI lấy log theo thứ tự thu hẹp dần. Bốn bước, mỗi bước đầu vào đã ít hơn bước trước.
+Câu trả lời nằm ở chỗ hệ thống không đọc bừa.
 
-**Bước một, tìm log lỗi.** Chỉ lấy mức ERROR và WARN. Trong hàng triệu dòng log một ngày, số dòng thực sự là lỗi chiếm tỉ lệ rất nhỏ. Nên ngay bộ lọc đầu tiên đã cắt đi phần lớn.
+Mỗi ngày hệ thống của mình sinh ra hàng triệu dòng log. Nếu đưa hết cho AI đọc thì vừa đắt vừa sai, vì nó bị nhiễu. TraceAI làm ngược lại: nó thu hẹp dần qua bốn bước lọc, mỗi bước nhỏ hơn bước trước, để cuối cùng chỉ còn vài chục tới vài trăm dòng thực sự liên quan tới đúng sự cố đó.
 
-**Bước hai, nếu có trace ID thì chỉ tìm theo trace ID đó.** Đây là bước thu hẹp mạnh nhất. Chỉ những dòng log thuộc đúng trace của sự cố mới được lấy, và lấy xuyên suốt tất cả service mà request đó đi qua. Một request, không phải một service.
+[Chỉ vào sơ đồ]
 
-**Bước ba, tìm log ngữ cảnh theo vị trí trong code.** Từ dòng lỗi, qua stack trace, TraceAI biết lỗi phát sinh ở file nào hàm nào. Rồi mới tìm thêm các log liên quan quanh vị trí đó. Tức là tìm có chủ đích, không phải đọc bừa.
+Sơ đồ này là bốn bước đó. Điểm cần nhìn không phải từng bước, mà là hình dạng của nó: một cái phễu hẹp dần.
 
-**Bước bốn, tìm log theo khoảng thời gian.** Mở cửa sổ cộng trừ hai phút quanh thời điểm lỗi. Đủ để dựng lại câu chuyện của request, mà không phải kéo cả ngày về.
+Kết quả là mỗi lần điều tra chỉ tốn mười tám xu tiền mô hình, cộng hạ tầng chia đều thành ba mươi hai xu trọn gói.
 
-[Dừng một nhịp]
-
-Kết quả là lượng log thực sự đi vào mô hình cho mỗi lần điều tra chỉ vài chục dòng, nhiều lắm là vài trăm dòng đã lọc. Không phải hàng triệu dòng.
-
-Quy ra token là khoảng ba mươi hai nghìn token đầu vào. Tức là mười tám xu tiền mô hình.
-
-Nếu làm theo kiểu dồn hết log vào rồi bảo mô hình tự tìm, chi phí sẽ gấp mấy chục lần mà kết quả còn tệ hơn, vì mô hình bị nhiễu. Cái khó không phải gọi được LLM. Cái khó là biết đưa cho nó đúng thứ cần đưa.
-
-**Một điều kiện tôi muốn nói thẳng.**
-
-Để cơ chế trace ID chạy tốt nhất, các service phải có tích hợp thư viện sinh và truyền trace ID xuyên suốt, tức là distributed tracing. Khi trace ID giữ được liền mạch qua các service, TraceAI lần theo đúng một luồng request duy nhất. Đó chính là thứ khiến lượng log đưa vào ít mà vẫn đủ để kết luận.
-
-Service nào chưa có trace ID xuyên suốt thì vẫn điều tra được, hệ thống lùi về tìm theo message cộng thời gian cộng tên service. Nhưng độ chính xác và độ gọn sẽ thấp hơn.
-
-Nói cách khác, TraceAI không bắt buộc phải có distributed tracing mới chạy. Nhưng service nào chuẩn hóa được trace ID thì hiệu quả trên service đó cao hơn hẳn. Đây cũng là một lý do để đẩy chuẩn hóa tracing rộng ra, vì giá trị thu về đo được ngay.
+Nói gọn lại: cái khó không phải gọi được AI, ai cũng gọi được. Cái khó là biết đưa cho nó đúng thứ cần đưa. Đó là phần chúng em bỏ công nhiều nhất, và cũng là phần làm nên khoảng cách chi phí ở slide sau.
 
 ---
 
@@ -145,7 +123,7 @@ Nói cách khác, TraceAI không bắt buộc phải có distributed tracing m�
 
 [Slide 6]
 
-Một điểm mà tôi thấy các sản phẩm ngoài thị trường bỏ qua: người cần câu trả lời không phải lúc nào cũng là dev.
+Một điểm mà em thấy các sản phẩm ngoài thị trường bỏ qua: người cần câu trả lời không phải lúc nào cũng là dev.
 
 Nên TraceAI có hai chế độ, phân theo vai trò.
 
@@ -153,7 +131,7 @@ Chế độ Support trả lời bốn câu: đội nào sở hữu lỗi, bao nh
 
 Chế độ Dev thì đi tới tận dòng code, kèm bảng bằng chứng, luồng xuyên service và các bước tái hiện.
 
-Quan trọng là hai chế độ này được chặn ở tầng middleware, không phải bằng cách ẩn nút trên giao diện. Support không bao giờ chạm được vào mã nguồn, kể cả có gọi thẳng API.
+Quan trọng là hai chế độ này được chặn ở tầng hệ thống, không phải bằng cách ẩn nút trên giao diện. Support không bao giờ chạm được vào mã nguồn, kể cả khi cố tình đi đường vòng.
 
 ---
 
@@ -161,27 +139,33 @@ Quan trọng là hai chế độ này được chặn ở tầng middleware, kh�
 
 [Slide 7, lướt nhanh]
 
-Slide này tôi lướt nhanh, ban giám khảo có thể xem lại sau.
+Slide này em lướt nhanh, ban giám khảo có thể xem lại sau.
 
-Từ một công cụ phân tích ban đầu, nó đã thành một hệ sinh thái: chat AI hỏi tiếp trên từng kết quả, thông báo qua Teams kèm deep link, monitor lỗi theo thời gian thực, truy vết hiệu năng chứ không chỉ lỗi, và code graph dựng bằng tree-sitter cho bốn ngôn ngữ Java, Python, TypeScript, Go.
+Từ một công cụ phân tích ban đầu, nó đã thành một hệ sinh thái: hỏi tiếp bằng chat ngay trên từng kết quả, tự báo qua Teams khi phân tích xong, theo dõi lỗi theo thời gian thực, đo cả độ chậm chứ không chỉ lỗi, và bản đồ mã nguồn phủ bốn ngôn ngữ chính mà công ty đang dùng.
 
-Điểm tôi muốn nói là cái này không dừng ở proof of concept. Nó đang chạy thật và đang được dùng thật.
+Điểm em muốn nói là cái này không dừng ở mức thử nghiệm. Nó đang chạy thật và đang được dùng thật.
 
 ---
 
-## Quyền riêng tư — Slide 8 · 1 phút
+## Quyền riêng tư — Slide 8 · 1 phút 40
 
 [Slide 8, sơ đồ PII masking]
 
-Đây là phần tôi nghĩ ban giám khảo quan tâm nhất, vì chúng ta là công ty chứng khoán.
+Đây là phần em nghĩ ban giám khảo quan tâm nhất, vì chúng ta là công ty chứng khoán.
 
 Mô hình không bao giờ nhìn thấy dữ liệu khách hàng thật.
 
-Mọi lời gọi LLM đi qua một lớp bọc bắt buộc. Trước khi gửi đi, số tài khoản, tên, số điện thoại, email đều bị che. Nhận về thì khôi phục lại. Bảng ánh xạ chỉ nằm trong bộ nhớ tiến trình, không ghi xuống đĩa, không ghi vào log, không đi đâu cả.
+Mọi lời gọi tới mô hình AI đều đi qua một lớp chặn bắt buộc. Trước khi gửi đi, số tài khoản, tên, số điện thoại, email đều bị che. Nhận về thì khôi phục lại. Bảng ánh xạ chỉ nằm trong bộ nhớ tiến trình, không ghi xuống đĩa, không ghi vào log, không đi đâu cả.
 
-Tôi dùng Presidio kết hợp spaCy NER, cộng thêm bộ luật riêng cho các định dạng tài chính Việt Nam mà thư viện có sẵn không nhận ra.
+Bộ nhận diện này em không dùng mặc định của thư viện. Các định dạng tài chính Việt Nam — số tiểu khoản, mã hợp đồng — thư viện quốc tế không nhận ra, nên em viết thêm luật riêng cho chúng.
 
-Và toàn bộ chạy trên AWS Bedrock trong chính tài khoản AWS của TCBS. Dữ liệu không rời khỏi ranh giới đám mây của mình.
+Và toàn bộ mô hình chạy trong chính tài khoản AWS của TCBS. Dữ liệu khách hàng không rời khỏi ranh giới đám mây của mình, kể cả dữ liệu đã che.
+
+[Dừng một nhịp]
+
+Em muốn nói rõ vì sao chỗ này quan trọng. Cách làm phổ biến hiện nay khi gặp lỗi khó là copy log dán vào một chatbot công cộng. Việc đó đang diễn ra, ở khắp nơi, và không ai kiểm soát được. TraceAI thay thế đúng hành vi đó bằng một đường đi có kiểm soát: che dữ liệu trước, chạy trong nhà, ghi lại ai hỏi gì.
+
+Nói cách khác, đây không chỉ là thêm một công cụ. Nó đóng lại một lỗ hổng vốn đã có.
 
 ---
 
@@ -189,15 +173,15 @@ Và toàn bộ chạy trên AWS Bedrock trong chính tài khoản AWS của TCBS
 
 [Slide 9]
 
-Bốn ràng buộc để hệ thống này chạy được trong môi trường ngân hàng, tôi nói gọn.
+Bốn ràng buộc để hệ thống này chạy được trong môi trường ngân hàng, em nói gọn.
 
-Danh tính thì đăng nhập bằng Entra ID, phân vai ở middleware.
+Danh tính thì đăng nhập bằng tài khoản nội bộ của tổ chức, phân vai ngay ở tầng hệ thống chứ không phải ẩn nút trên giao diện.
 
-Thông tin đăng nhập thì token riêng từng người, mã hóa AES-256-GCM khi lưu.
+Thông tin đăng nhập thì mỗi người một bộ riêng, mã hóa khi lưu trữ. Không có tài khoản dùng chung.
 
 Thực thi thì mặc định chỉ đọc. Đường ghi duy nhất là Auto Fix, và phải do người bấm.
 
-Giám sát thì mỗi lần chạy đều có telemetry về thời lượng và số token. Chính telemetry đó là nguồn của mọi con số ở slide tiếp theo.
+Giám sát thì mỗi lần chạy đều được hệ thống tự ghi lại thời lượng và khối lượng xử lý. Chính nhật ký đó là nguồn của mọi con số ở slide tiếp theo.
 
 ---
 
@@ -205,19 +189,19 @@ Giám sát thì mỗi lần chạy đều có telemetry về thời lượng và
 
 [Slide 10 — slide quan trọng nhất, nói chậm lại]
 
-Đây là phần con số. Tôi sẽ nói rõ cái nào là đo được và cái nào là ước tính, để ban giám khảo tự đánh giá.
+Đây là phần con số. Em sẽ nói rõ cái nào là đo được và cái nào là ước tính, để ban giám khảo tự đánh giá.
 
 **Cái đo được, không phụ thuộc giả định nào:**
 
 Thời gian mỗi lần chạy, hệ thống tự ghi. Trung bình khoảng ba phút.
 
-Chi phí token, Bedrock trả về theo từng lần gọi. Mười tám xu phần mô hình, cộng hạ tầng chia đều thành ba mươi hai xu trọn gói.
+Chi phí xử lý, nhà cung cấp trả về theo từng lần gọi. Mười tám xu phần mô hình, cộng hạ tầng chia đều thành ba mươi hai xu trọn gói.
 
 Số lần chạy, khoảng tám trăm một tháng.
 
 **Cái là ước tính:**
 
-Mốc thủ công sáu mươi phút. Tôi lấy từ một mẫu các sự cố xử lý tay, không phải thí nghiệm đối chứng. Nếu ban giám khảo cho rằng con số thật khác đi thì kết quả sẽ dịch theo.
+Mốc thủ công sáu mươi phút. Em lấy từ một mẫu các sự cố xử lý tay, không phải thí nghiệm đối chứng. Nếu ban giám khảo cho rằng con số thật khác đi thì kết quả sẽ dịch theo.
 
 Từ đó ra: mỗi lần tiết kiệm năm mươi bảy phút. Tám trăm lần một tháng là bảy trăm sáu mươi giờ. Chia cho một trăm sáu mươi giờ công một tháng, tương đương bốn phẩy bảy lăm FTE.
 
@@ -239,13 +223,13 @@ Bóc tách chi phí.
 
 Nhân sự hai nghìn hai trăm năm mươi đô. Ba kỹ sư, đơn giá hai nghìn một tháng, nhưng làm bán thời gian ba phần tám. Đây không phải dự án chiếm trọn ba người trong một tháng.
 
-Phần mềm sáu trăm đô, là ba license Kiro Power Plan.
+Phần mềm sáu trăm đô, là ba tài khoản công cụ hỗ trợ lập trình.
 
-Tổng hai nghìn tám trăm năm mươi đô. Toàn bộ còn lại là stack mã nguồn mở, không mua license nào.
+Tổng hai nghìn tám trăm năm mươi đô. Toàn bộ phần còn lại dùng phần mềm mã nguồn mở, không mua bản quyền nào.
 
 **Vận hành, mỗi tháng:**
 
-Bedrock một trăm bốn tư đô ở mức tám trăm lần phân tích.
+Mô hình AI một trăm bốn tư đô, ở mức tám trăm lần phân tích.
 
 Hạ tầng một trăm lẻ tám đô, trong đó sáu mươi mốt là compute.
 
@@ -255,7 +239,7 @@ Tổng hai trăm năm hai đô.
 
 Bên phải là công cụ tính. Ban giám khảo có thể kéo số lần điều tra để xem chi phí thay đổi thế nào.
 
-Điểm cần nhìn là hình dạng của đường chi phí. Phần LLM luôn là mười tám xu mỗi lần, ở mọi khối lượng. Không có bậc license, không tính theo ghế. Chỉ hạ tầng cố định là được chia đều, nên càng dùng nhiều thì đơn giá trọn gói càng rẻ.
+Điểm cần nhìn là hình dạng của đường chi phí. Phần mô hình luôn là mười tám xu mỗi lần, ở mọi khối lượng. Không có bậc bản quyền, không tính theo số người dùng. Chỉ hạ tầng cố định là được chia đều, nên càng dùng nhiều thì đơn giá trọn gói càng rẻ.
 
 Và với chi phí xây hai nghìn tám trăm năm mươi đô, so với giá trị tiết kiệm chín nghìn năm trăm một tháng, thì hoàn vốn trong chín ngày đầu vận hành.
 
@@ -267,7 +251,7 @@ Và với chi phí xây hai nghìn tám trăm năm mươi đô, so với giá tr
 
 Câu hỏi hợp lý là: sao không đi mua?
 
-Tôi đã tra giá niêm yết công khai của ba sản phẩm gần nhất.
+Em đã tra giá niêm yết công khai của ba sản phẩm gần nhất.
 
 Elastic AI Assistant nằm sẵn trong Kibana mình đã trả tiền. Nhưng nó chỉ thấy dữ liệu trong Elastic. Không thấy Sentry, không thấy Matomo, không đọc mã nguồn.
 
@@ -275,17 +259,17 @@ Datadog Bits AI SRE, tính theo AI Credits. Cùng tám trăm lần điều tra l
 
 Sentry Seer thì đọc code và mở được autofix PR, nhưng không đi xuyên nhiều service backend.
 
-Còn cách làm phổ biến nhất hiện nay là dán log vào chatbot. Rẻ nhất về license, nhưng rủi ro PII cao nhất, và vẫn tốn giờ người.
+Còn cách làm phổ biến nhất hiện nay là dán log vào chatbot. Rẻ nhất về tiền bản quyền, nhưng rủi ro lộ dữ liệu khách hàng là cao nhất, và vẫn tốn giờ người.
 
 [Chỉ vào cột TraceAI]
 
-Không ai trong số này đi từ hành vi khách hàng tới dòng code. Vì để làm được thì phải có sẵn bốn nguồn dữ liệu nội bộ nối với nhau bằng trace ID. Đó là thứ không bán ngoài thị trường.
+Không ai trong số này đi từ hành vi khách hàng tới dòng code. Vì để làm được thì phải có sẵn bốn nguồn dữ liệu nội bộ nối với nhau bằng một mã truy vết chung. Đó là thứ không bán ngoài thị trường.
 
 [Bấm sang slide 13]
 
 Slide này quy hết về cùng một khối lượng, tám trăm lần điều tra một tháng, để so cho công bằng.
 
-Điều tôi muốn ban giám khảo nhìn không phải con số tuyệt đối, mà là hình dạng của nó. TraceAI tăng theo số lần dùng. Tất cả phần còn lại tăng theo số ghế đăng ký. Đội càng đông thì khoảng cách càng giãn ra.
+Điều em muốn ban giám khảo nhìn không phải con số tuyệt đối, mà là hình dạng của nó. TraceAI tăng theo số lần dùng. Tất cả phần còn lại tăng theo số ghế đăng ký. Đội càng đông thì khoảng cách càng giãn ra.
 
 Và có một ràng buộc cứng nữa: dữ liệu khách hàng không được rời khỏi ranh giới đám mây của mình. Riêng điều đó đã loại phần lớn phương án mua.
 
@@ -295,9 +279,9 @@ Và có một ràng buộc cứng nữa: dữ liệu khách hàng không đượ
 
 [Slide 14]
 
-Về khả năng mở rộng, điểm tôi muốn nhấn là thêm một đội chỉ là cấp quyền, không phải dựng hạ tầng. Đội mới được gán vai, tự nhập token của mình, xong.
+Về khả năng mở rộng, điểm em muốn nhấn là thêm một đội chỉ là cấp quyền, không phải dựng hạ tầng. Đội mới được gán vai, tự nhập thông tin đăng nhập của mình, xong.
 
-Code graph thiết kế cho khoảng năm trăm repository và một triệu hàm, có cache hai tầng nên chi phí mỗi truy vấn không phụ thuộc tổng số repo.
+Bản đồ mã nguồn thiết kế cho khoảng năm trăm kho mã và một triệu hàm, và được thiết kế sao cho càng nhiều kho thì chi phí mỗi lần tra cứu vẫn không tăng.
 
 [Cuộn xuống phần dưới slide 14]
 
@@ -317,9 +301,9 @@ Bản tin ưu tiên: tổng hợp hằng ngày, chấm điểm theo mức ảnh 
 
 [Slide 15]
 
-Tôi xin tóm lại bằng ba ý.
+Em xin tóm lại bằng ba ý.
 
-Một, cái này đã chạy thật. Số liệu vận hành lấy từ database production, không phải mô phỏng. Phần quy đổi ra tiền là ước tính, và tôi đã nói rõ giả định đứng sau nó.
+Một, cái này đã chạy thật. Số liệu vận hành lấy từ database production, không phải mô phỏng. Phần quy đổi ra tiền là ước tính, và em đã nói rõ giả định đứng sau nó.
 
 Hai, nó an toàn theo thiết kế chứ không phải theo quy trình. Quyền của chính người dùng, PII che trước mô hình, con người giữ quyền merge. Ba thứ đó nằm trong code, không phải trong tài liệu.
 
@@ -327,25 +311,63 @@ Ba, nó mở rộng được ngay. Thêm một đội là cấp quyền. Thêm m
 
 Ba phút, ba mươi hai xu, và một bằng chứng luôn chỉ đúng dòng code.
 
-Tôi xin hết. Rất mong nhận được câu hỏi từ ban giám khảo.
+Em xin hết. Rất mong nhận được câu hỏi từ ban giám khảo.
 
 ---
 
 # Phần chuẩn bị hỏi đáp
 
+## Câu từ cấp lãnh đạo
+
+Nhóm này khả năng cao hơn nhóm kỹ thuật bên dưới. Trả lời bằng ngôn ngữ kinh doanh, đừng kéo về cơ chế.
+
+**"Sao không thuê thêm người cho rẻ và đơn giản?"**
+
+Một kỹ sư thêm vào chi phí khoảng hai nghìn đô một tháng và làm được việc trong giờ hành chính. TraceAI tốn hai trăm năm hai đô một tháng, chạy hai mươi tư trên bảy, và không quên cái nó từng điều tra.
+
+Nhưng em không đặt nó là thay người. Bảy trăm sáu mươi giờ tiết kiệm được không phải để cắt biên chế, mà là bảy trăm sáu mươi giờ kỹ sư quay lại làm sản phẩm thay vì ngồi dò log.
+
+**"Rủi ro lớn nhất của việc này là gì?"**
+
+Em nghĩ có hai.
+
+Một là phụ thuộc nhà cung cấp mô hình. Nếu AWS đổi giá thì chi phí đổi theo. Nhưng phần mô hình chỉ là một trăm bốn tư đô một tháng, và kiến trúc cho phép đổi sang mô hình khác mà không phải viết lại hệ thống, vì phần mô hình được tách riêng.
+
+Hai là người dùng tin kết quả quá mức. Chỗ này em chặn bằng thiết kế: mọi kết luận phải kèm bằng chứng thật, thiếu thì phải khai là thiếu, và hệ thống không tự sửa production. Nhưng đây là rủi ro cần theo dõi liên tục chứ không phải giải quyết một lần.
+
+**"Nếu người xây nghỉ việc thì hệ thống có chết không?"**
+
+Không. Công nghệ dùng đều là phổ thông, không có gì tự chế. Tài liệu kiến trúc và sơ đồ có sẵn. Thêm một nguồn dữ liệu mới là thêm một tệp cấu hình, không phải đọc hiểu toàn hệ thống.
+
+Nhưng em nói thật là hiện tại nó vẫn phụ thuộc vào một nhóm nhỏ. Nếu muốn nó thành nền tảng dùng chung thì cần chuyển giao chính thức, và đó là việc chưa làm.
+
+**"Có vướng gì về tuân thủ hay pháp lý không?"**
+
+Ba điểm em đã tính. Dữ liệu khách hàng không rời khỏi hạ tầng của mình. Dữ liệu định danh được che trước khi tới mô hình. Và mọi lần chạy đều có nhật ký: ai hỏi, hỏi gì, lúc nào.
+
+Em chưa đưa qua rà soát tuân thủ chính thức. Nếu hội đồng thấy cần thì đó là bước tiếp theo nên làm.
+
+**"Đây là sản phẩm hay là dự án phụ của một nhóm?"**
+
+Hiện tại nó nằm giữa. Nó đã chạy thật, có người dùng thật, có số liệu vận hành thật — không còn là thử nghiệm. Nhưng nó chưa có đội vận hành riêng và chưa nằm trong danh mục hệ thống chính thức.
+
+Em báo cáo kết quả hôm nay để hội đồng thấy nó đang ở đâu, chứ chưa đề xuất đưa nó thành sản phẩm chính thức.
+
+---
+
 ## Câu chắc chắn sẽ bị hỏi
 
 **"Làm sao biết mốc sáu mươi phút là đúng?"**
 
-Đây là ước tính từ mẫu sự cố xử lý tay, tôi không giấu điều đó. Nên cách tôi kiểm tra là thử hạ mốc xuống xem kết luận có đổ không.
+Đây là ước tính từ mẫu sự cố xử lý tay, em không giấu điều đó. Nên cách em kiểm tra là thử hạ mốc xuống xem kết luận có đổ không.
 
-Nếu mốc thật chỉ là hai mươi phút, tức là một phần ba con số tôi đưa, thì ra bảy trăm sáu mươi giờ giảm còn hai trăm hai mươi bảy giờ, giá trị hai nghìn tám trăm ba ba đô, ROI vẫn mười một phẩy hai lần.
+Nếu mốc thật chỉ là hai mươi phút, tức là một phần ba con số em đưa, thì ra bảy trăm sáu mươi giờ giảm còn hai trăm hai mươi bảy giờ, giá trị hai nghìn tám trăm ba ba đô, ROI vẫn mười một phẩy hai lần.
 
 Nếu mốc chỉ là mười phút thì ROI còn bốn phẩy sáu lần. Vẫn dương.
 
 Điểm hòa vốn rơi ở mốc thủ công khoảng bốn phút rưỡi. Mà bốn phút rưỡi thì gần bằng đúng thời gian máy chạy, tức là gần như không còn gì để tiết kiệm.
 
-Nói cách khác, con số tuyệt đối phụ thuộc giả định, nhưng kết luận "đáng làm" thì không đổ kể cả khi tôi sai ba lần.
+Nói cách khác, con số tuyệt đối phụ thuộc giả định, nhưng kết luận "đáng làm" thì không đổ kể cả khi em sai ba lần.
 
 **"Nếu AI trả lời sai thì sao?"**
 
@@ -381,11 +403,11 @@ Khi service có trace ID xuyên suốt, TraceAI lần theo đúng một luồng 
 
 Service chưa có thì hệ thống lùi về tìm theo message, thời gian và tên service. Vẫn ra kết quả, nhưng độ chính xác và độ gọn thấp hơn, và chi phí mỗi lần cao hơn vì phải đọc nhiều log hơn.
 
-Nên tôi nhìn nó theo hướng ngược lại: đây là một lý do cụ thể để đẩy chuẩn hóa tracing rộng ra. Service nào chuẩn hóa xong thì giá trị thu về đo được ngay trên chính service đó.
+Nên em nhìn nó theo hướng ngược lại: đây là một lý do cụ thể để đẩy chuẩn hóa tracing rộng ra. Service nào chuẩn hóa xong thì giá trị thu về đo được ngay trên chính service đó.
 
 **"Sao chọn LangGraph mà không tự viết vòng lặp?"**
 
-Cái tôi cần ở framework chỉ có hai thứ: quản lý trạng thái theo bước, và checkpoint để phục hồi. LangGraph cho sẵn cả hai. Tự viết thì cũng ra, nhưng mất thêm thời gian mà không tạo thêm giá trị nào cho bài toán này. Phần logic riêng của TraceAI nằm ở tool registry và ở chiến lược thu hẹp, không nằm ở vòng lặp.
+Cái em cần ở framework chỉ có hai thứ: quản lý trạng thái theo bước, và checkpoint để phục hồi. LangGraph cho sẵn cả hai. Tự viết thì cũng ra, nhưng mất thêm thời gian mà không tạo thêm giá trị nào cho bài toán này. Phần logic riêng của TraceAI nằm ở tool registry và ở chiến lược thu hẹp, không nằm ở vòng lặp.
 
 **"Nếu agent chạy loạn, gọi công cụ mãi không dừng thì sao?"**
 
@@ -401,53 +423,147 @@ Stack là công nghệ phổ thông: Python, FastAPI, PostgreSQL, React. Không 
 
 **Nhịp độ**
 
-Ba slide cần chậm và rõ: slide 8 về PII, slide 10 về kết quả, slide 12 về so sánh. Đây là ba chỗ ban giám khảo sẽ cân nhắc nhất.
+Bốn slide cần chậm và rõ, vì đây là chỗ hội đồng ra đánh giá: slide 8 (dữ liệu khách hàng), slide 10 (kết quả), slide 11 (chi phí), slide 12–13 (so với đi mua).
 
-Ba slide có thể lướt: slide 7 tính năng, slide 9 quản trị, slide 14 mở rộng và lộ trình.
+Ba slide có thể lướt: slide 7 (tính năng), slide 9 (quản trị), slide 14 (mở rộng).
+
+Slide 4 và slide 5 đã được rút gọn có chủ đích. Đừng sa vào chi tiết kỹ thuật ở hai slide này — nếu có người muốn đi sâu, hẹn trả lời ở phần hỏi đáp và dùng Phụ lục kỹ thuật.
+
+**Nếu bị hỏi cắt ngang giữa chừng**
+
+Trả lời ngắn rồi quay lại mạch. Nếu câu hỏi rơi đúng vào slide sắp tới thì nói: "Câu này em có một slide riêng, xin phép trả lời ở phần sau ạ."
+
+**Thái độ với con số**
+
+Chủ động nói cái nào là ước tính trước khi bị hỏi. Ban giám khảo tin người tự vạch ra giới hạn của mình hơn người trình bày toàn số đẹp.
+
+Đừng nói "tiết kiệm được rất nhiều". Nói "bảy trăm sáu mươi giờ, dựa trên giả định mốc thủ công sáu mươi phút".
+
+**Ba câu phải nói bằng được, dù có bị cắt thời gian thế nào**
+
+1. Một tiếng xuống ba phút, ba mươi hai xu một lần.
+2. Mô hình không bao giờ thấy dữ liệu khách hàng thật.
+3. Hoàn vốn trong tuần đầu, ROI ba mươi tám lần.
+
+
+---
+
+# Phụ lục kỹ thuật
+
+Phần này **không đọc trong bài**. Đây là kho để rút ra khi bị hỏi sâu, hoặc khi trình bày lại cho hội đồng chuyên môn.
+
+## Chi tiết kiến trúc — ba lớp đầy đủ
+
+[Slide 4. Sơ đồ này có ba lớp xem sẵn, bấm lần lượt theo ba đoạn dưới đây]
+
+Đây là kiến trúc runtime. Em sẽ đi theo ba lớp, mỗi lớp trả lời một câu hỏi.
+
+**[Bấm lớp 1 — Analysis request path]**
+
+Câu thứ nhất: một yêu cầu đi qua đâu.
+
+Người dùng vào TraceAI Web, viết bằng React 19. Đăng nhập qua Entra ID, trả về JWT có kèm vai trò. FastAPI nhận request, kiểm vai, rồi đẩy xuống AIAnalyzer.
+
+AIAnalyzer là lõi, dựng trên LangGraph. Vòng lặp của nó là: lập kế hoạch, gọi công cụ, kiểm chứng kết quả, rồi mới sinh báo cáo. Trạng thái từng bước ghi checkpoint xuống PostgreSQL, nên một phân tích đang chạy dở mà process chết thì chạy tiếp được, không phải làm lại từ đầu.
+
+Có hai cái chốt em đặt trong vòng lặp này. Một là ngân sách vòng lặp, agent không được gọi công cụ vô hạn. Hai là bước kết luận bắt buộc: khi chạm ngưỡng, hệ thống tắt hết công cụ và ép agent phải chốt bằng cái nó đang có. Đây là cách em chặn kiểu agent chạy loạn rồi đốt tiền.
+
+Đầu ra không phải văn xuôi tự do. Nó là JSON được validate bằng Pydantic, có schema cố định, bắt buộc mỗi luận điểm phải kèm nguồn.
+
+**[Bấm lớp 2 — Cross-stack evidence]**
+
+Câu thứ hai: nó lấy bằng chứng ở đâu.
+
+Bốn hệ thống. Kibana cho log và APM span. Sentry cho lỗi frontend. Matomo cho hành vi người dùng. Bitbucket cho mã nguồn, commit và pull request.
+
+Thứ khâu bốn cái này lại là distributed trace ID. Và mắt xích khó nhất là nối frontend với backend, vì hai bên vốn không biết nhau. Chỗ đó em đi qua trường additional_data của Sentry, nơi có trace ID mà request đã mang theo. Nối được mắt xích đó thì cả chuỗi mới thông.
+
+Riêng phần mã nguồn thì không phải grep. Em dựng code graph bằng tree-sitter, biết hàm nào gọi hàm nào, nên đi từ dòng lỗi ngược lên caller hoặc xuôi xuống callee đều được.
+
+**[Bấm lớp 3 — Privacy boundary]**
+
+Câu thứ ba, và là câu quan trọng nhất với ngân hàng: quyền và dữ liệu.
+
+Agent này không có quyền riêng của nó. Mọi lời gọi tới bốn hệ thống kia đều đi bằng token của chính người đang hỏi. Nếu bạn không được phép đọc log của một service, thì agent chạy cho bạn cũng không đọc được. Không có super-token dùng chung nằm ở đâu cả. Token lưu thì mã hóa AES-256-GCM.
+
+Và mọi đường ra Bedrock đều bị chặn qua PIIMaskingLLM. Không có nhánh nào đi tắt. Phần này em nói kỹ hơn ở slide sau.
+
+[Chỉ vào khung bao ngoài của sơ đồ]
+
+Cái khung lớn bao quanh là ranh giới đám mây TCBS. Không có SaaS bên thứ ba nào nhìn thấy log hay mã nguồn của mình. Bedrock cũng nằm trong region, trong tài khoản AWS của mình.
+
+Em quyết định mô hình quyền này ngay từ ngày đầu. Nếu làm ngược lại, cho agent một tài khoản riêng cho tiện, thì sau này gỡ ra rất khó.
+
+---
+
+## Chi tiết bốn bước thu hẹp và điều kiện tracing
+
+[Slide 5, sơ đồ sequence]
+
+Slide này trả lời câu hỏi mà em đoán ban giám khảo sẽ hỏi: sao rẻ được như vậy?
+
+Câu trả lời là TraceAI lấy log theo thứ tự thu hẹp dần. Bốn bước, mỗi bước đầu vào đã ít hơn bước trước.
+
+**Bước một, tìm log lỗi.** Chỉ lấy mức ERROR và WARN. Trong hàng triệu dòng log một ngày, số dòng thực sự là lỗi chiếm tỉ lệ rất nhỏ. Nên ngay bộ lọc đầu tiên đã cắt đi phần lớn.
+
+**Bước hai, nếu có trace ID thì chỉ tìm theo trace ID đó.** Đây là bước thu hẹp mạnh nhất. Chỉ những dòng log thuộc đúng trace của sự cố mới được lấy, và lấy xuyên suốt tất cả service mà request đó đi qua. Một request, không phải một service.
+
+**Bước ba, tìm log ngữ cảnh theo vị trí trong code.** Từ dòng lỗi, qua stack trace, TraceAI biết lỗi phát sinh ở file nào hàm nào. Rồi mới tìm thêm các log liên quan quanh vị trí đó. Tức là tìm có chủ đích, không phải đọc bừa.
+
+**Bước bốn, tìm log theo khoảng thời gian.** Mở cửa sổ cộng trừ hai phút quanh thời điểm lỗi. Đủ để dựng lại câu chuyện của request, mà không phải kéo cả ngày về.
+
+[Dừng một nhịp]
+
+Kết quả là lượng log thực sự đi vào mô hình cho mỗi lần điều tra chỉ vài chục dòng, nhiều lắm là vài trăm dòng đã lọc. Không phải hàng triệu dòng.
+
+Quy ra token là khoảng ba mươi hai nghìn token đầu vào. Tức là mười tám xu tiền mô hình.
+
+Nếu làm theo kiểu dồn hết log vào rồi bảo mô hình tự tìm, chi phí sẽ gấp mấy chục lần mà kết quả còn tệ hơn, vì mô hình bị nhiễu. Cái khó không phải gọi được LLM. Cái khó là biết đưa cho nó đúng thứ cần đưa.
+
+**Một điều kiện em muốn nói thẳng.**
+
+Để cơ chế trace ID chạy tốt nhất, các service phải có tích hợp thư viện sinh và truyền trace ID xuyên suốt, tức là distributed tracing. Khi trace ID giữ được liền mạch qua các service, TraceAI lần theo đúng một luồng request duy nhất. Đó chính là thứ khiến lượng log đưa vào ít mà vẫn đủ để kết luận.
+
+Service nào chưa có trace ID xuyên suốt thì vẫn điều tra được, hệ thống lùi về tìm theo message cộng thời gian cộng tên service. Nhưng độ chính xác và độ gọn sẽ thấp hơn.
+
+Nói cách khác, TraceAI không bắt buộc phải có distributed tracing mới chạy. Nhưng service nào chuẩn hóa được trace ID thì hiệu quả trên service đó cao hơn hẳn. Đây cũng là một lý do để đẩy chuẩn hóa tracing rộng ra, vì giá trị thu về đo được ngay.
+
+---
 
 ---
 
 # Đường cắt dự phòng
 
-Chỉ dùng khi bị rút quỹ thời gian tại chỗ. Mặc định là trình bày bản đầy đủ 20 phút ở trên.
+Bản chính là 17 phút. Nếu bị rút quỹ thời gian tại chỗ, cắt theo thứ tự này.
 
-Cắt theo đúng thứ tự dưới đây.
-
-## Bản 13 phút
+## Về 13 phút
 
 | Cắt gì | Tiết kiệm |
 |---|---|
-| Slide 4: bỏ lớp 1 và lớp 2, chỉ nói lớp 3 | 2 phút |
-| Slide 5: bỏ phần điều kiện distributed tracing, đẩy sang Q&A | 1 phút |
 | Slide 7 (tính năng): bỏ hẳn | 40 giây |
-| Slide 9 (quản trị): bỏ hẳn, nội dung đã nằm trong slide 4 và 8 | 40 giây |
+| Slide 9 (quản trị): bỏ hẳn, nội dung đã nằm trong slide 4 và 8 | 45 giây |
+| Slide 14: bỏ phần mở rộng, chỉ đọc 4 hướng lộ trình | 30 giây |
 | Slide 12–13: bỏ đoạn nói từng đối thủ, chỉ nói dòng kết | 45 giây |
-| Slide 14: bỏ phần mở rộng, chỉ đọc 4 hướng roadmap | 30 giây |
-
-Câu thay cho lớp 1 và 2 của slide 4: *"Lõi là một vòng lặp agent trên LangGraph, có ngân sách vòng lặp và bước kết luận bắt buộc. Nó lấy bằng chứng từ bốn hệ thống, khâu lại bằng trace ID."*
+| Slide 3: bỏ điểm thứ ba (khép vòng) | 30 giây |
 
 Câu thay cho đoạn đối thủ ở slide 12: *"Ba sản phẩm gần nhất, cái rẻ nhất thì không thấy Sentry, Matomo và mã nguồn, cái thấy nhiều nhất thì năm nghìn hai một tháng. Không ai đi từ hành vi khách hàng tới dòng code."*
 
-## Bản 10 phút
+## Về 10 phút
 
-Cắt tiếp từ bản 13 phút:
+Cắt tiếp:
 
 | Cắt thêm | Tiết kiệm |
 |---|---|
-| Slide 5: gộp bước 3 và bước 4 thành một câu | 30 giây |
-| Slide 3: bỏ điểm thứ ba (khép vòng), nói ở slide 7 hoặc bỏ | 30 giây |
+| Slide 4: bỏ điểm "hệ thống có phanh", giữ hai điểm đầu | 25 giây |
+| Slide 5: bỏ đoạn giải thích phễu, chỉ nói kết quả chi phí | 40 giây |
 | Slide 2: rút còn hai câu, vì slide 1 đã kể câu chuyện rồi | 30 giây |
 | Slide 6 (hai chế độ): rút còn ba câu | 30 giây |
 
-Câu gộp bước 3 và 4 của slide 5: *"Rồi thu hẹp tiếp theo vị trí trong code qua stack trace, và theo cửa sổ cộng trừ hai phút quanh thời điểm lỗi."*
-
 ## Không bao giờ cắt
 
-Slide 1 (con số mở), slide 8 (PII), slide 10 (kết quả), slide 11 (chi phí), và lớp 3 của slide 4 (quyền và ranh giới dữ liệu).
+Slide 1 (con số mở), slide 8 (dữ liệu khách hàng), slide 10 (kết quả), slide 11 (chi phí), và hai điểm đầu của slide 4 (quyền và ranh giới dữ liệu).
 
-Đây là năm chỗ quyết định điểm. Mọi thứ khác đều có thể co lại.
-
----
+Đây là năm chỗ hội đồng dựa vào để đánh giá. Mọi thứ khác đều co được.
 
 # Ghi chú thêm
 
