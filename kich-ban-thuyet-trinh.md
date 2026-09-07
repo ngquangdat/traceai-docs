@@ -444,3 +444,141 @@ Chủ động nói cái nào là ước tính trước khi bị hỏi. Ban giám
 1. Một tiếng xuống ba phút, ba mươi hai xu một lần.
 2. Mô hình không bao giờ thấy dữ liệu khách hàng thật.
 3. Hoàn vốn trong tuần đầu, ROI ba mươi tám lần.
+
+
+---
+
+# Phụ lục kỹ thuật
+
+Phần này **không đọc trong bài**. Đây là kho để rút ra khi bị hỏi sâu, hoặc khi trình bày lại cho hội đồng chuyên môn.
+
+## Chi tiết kiến trúc — ba lớp đầy đủ
+
+[Slide 4. Sơ đồ này có ba lớp xem sẵn, bấm lần lượt theo ba đoạn dưới đây]
+
+Đây là kiến trúc runtime. Em sẽ đi theo ba lớp, mỗi lớp trả lời một câu hỏi.
+
+**[Bấm lớp 1 — Analysis request path]**
+
+Câu thứ nhất: một yêu cầu đi qua đâu.
+
+Người dùng vào TraceAI Web, viết bằng React 19. Đăng nhập qua Entra ID, trả về JWT có kèm vai trò. FastAPI nhận request, kiểm vai, rồi đẩy xuống AIAnalyzer.
+
+AIAnalyzer là lõi, dựng trên LangGraph. Vòng lặp của nó là: lập kế hoạch, gọi công cụ, kiểm chứng kết quả, rồi mới sinh báo cáo. Trạng thái từng bước ghi checkpoint xuống PostgreSQL, nên một phân tích đang chạy dở mà process chết thì chạy tiếp được, không phải làm lại từ đầu.
+
+Có hai cái chốt em đặt trong vòng lặp này. Một là ngân sách vòng lặp, agent không được gọi công cụ vô hạn. Hai là bước kết luận bắt buộc: khi chạm ngưỡng, hệ thống tắt hết công cụ và ép agent phải chốt bằng cái nó đang có. Đây là cách em chặn kiểu agent chạy loạn rồi đốt tiền.
+
+Đầu ra không phải văn xuôi tự do. Nó là JSON được validate bằng Pydantic, có schema cố định, bắt buộc mỗi luận điểm phải kèm nguồn.
+
+**[Bấm lớp 2 — Cross-stack evidence]**
+
+Câu thứ hai: nó lấy bằng chứng ở đâu.
+
+Bốn hệ thống. Kibana cho log và APM span. Sentry cho lỗi frontend. Matomo cho hành vi người dùng. Bitbucket cho mã nguồn, commit và pull request.
+
+Thứ khâu bốn cái này lại là distributed trace ID. Và mắt xích khó nhất là nối frontend với backend, vì hai bên vốn không biết nhau. Chỗ đó em đi qua trường additional_data của Sentry, nơi có trace ID mà request đã mang theo. Nối được mắt xích đó thì cả chuỗi mới thông.
+
+Riêng phần mã nguồn thì không phải grep. Em dựng code graph bằng tree-sitter, biết hàm nào gọi hàm nào, nên đi từ dòng lỗi ngược lên caller hoặc xuôi xuống callee đều được.
+
+**[Bấm lớp 3 — Privacy boundary]**
+
+Câu thứ ba, và là câu quan trọng nhất với ngân hàng: quyền và dữ liệu.
+
+Agent này không có quyền riêng của nó. Mọi lời gọi tới bốn hệ thống kia đều đi bằng token của chính người đang hỏi. Nếu bạn không được phép đọc log của một service, thì agent chạy cho bạn cũng không đọc được. Không có super-token dùng chung nằm ở đâu cả. Token lưu thì mã hóa AES-256-GCM.
+
+Và mọi đường ra Bedrock đều bị chặn qua PIIMaskingLLM. Không có nhánh nào đi tắt. Phần này em nói kỹ hơn ở slide sau.
+
+[Chỉ vào khung bao ngoài của sơ đồ]
+
+Cái khung lớn bao quanh là ranh giới đám mây TCBS. Không có SaaS bên thứ ba nào nhìn thấy log hay mã nguồn của mình. Bedrock cũng nằm trong region, trong tài khoản AWS của mình.
+
+Em quyết định mô hình quyền này ngay từ ngày đầu. Nếu làm ngược lại, cho agent một tài khoản riêng cho tiện, thì sau này gỡ ra rất khó.
+
+---
+
+## Chi tiết bốn bước thu hẹp và điều kiện tracing
+
+[Slide 5, sơ đồ sequence]
+
+Slide này trả lời câu hỏi mà em đoán ban giám khảo sẽ hỏi: sao rẻ được như vậy?
+
+Câu trả lời là TraceAI lấy log theo thứ tự thu hẹp dần. Bốn bước, mỗi bước đầu vào đã ít hơn bước trước.
+
+**Bước một, tìm log lỗi.** Chỉ lấy mức ERROR và WARN. Trong hàng triệu dòng log một ngày, số dòng thực sự là lỗi chiếm tỉ lệ rất nhỏ. Nên ngay bộ lọc đầu tiên đã cắt đi phần lớn.
+
+**Bước hai, nếu có trace ID thì chỉ tìm theo trace ID đó.** Đây là bước thu hẹp mạnh nhất. Chỉ những dòng log thuộc đúng trace của sự cố mới được lấy, và lấy xuyên suốt tất cả service mà request đó đi qua. Một request, không phải một service.
+
+**Bước ba, tìm log ngữ cảnh theo vị trí trong code.** Từ dòng lỗi, qua stack trace, TraceAI biết lỗi phát sinh ở file nào hàm nào. Rồi mới tìm thêm các log liên quan quanh vị trí đó. Tức là tìm có chủ đích, không phải đọc bừa.
+
+**Bước bốn, tìm log theo khoảng thời gian.** Mở cửa sổ cộng trừ hai phút quanh thời điểm lỗi. Đủ để dựng lại câu chuyện của request, mà không phải kéo cả ngày về.
+
+[Dừng một nhịp]
+
+Kết quả là lượng log thực sự đi vào mô hình cho mỗi lần điều tra chỉ vài chục dòng, nhiều lắm là vài trăm dòng đã lọc. Không phải hàng triệu dòng.
+
+Quy ra token là khoảng ba mươi hai nghìn token đầu vào. Tức là mười tám xu tiền mô hình.
+
+Nếu làm theo kiểu dồn hết log vào rồi bảo mô hình tự tìm, chi phí sẽ gấp mấy chục lần mà kết quả còn tệ hơn, vì mô hình bị nhiễu. Cái khó không phải gọi được LLM. Cái khó là biết đưa cho nó đúng thứ cần đưa.
+
+**Một điều kiện em muốn nói thẳng.**
+
+Để cơ chế trace ID chạy tốt nhất, các service phải có tích hợp thư viện sinh và truyền trace ID xuyên suốt, tức là distributed tracing. Khi trace ID giữ được liền mạch qua các service, TraceAI lần theo đúng một luồng request duy nhất. Đó chính là thứ khiến lượng log đưa vào ít mà vẫn đủ để kết luận.
+
+Service nào chưa có trace ID xuyên suốt thì vẫn điều tra được, hệ thống lùi về tìm theo message cộng thời gian cộng tên service. Nhưng độ chính xác và độ gọn sẽ thấp hơn.
+
+Nói cách khác, TraceAI không bắt buộc phải có distributed tracing mới chạy. Nhưng service nào chuẩn hóa được trace ID thì hiệu quả trên service đó cao hơn hẳn. Đây cũng là một lý do để đẩy chuẩn hóa tracing rộng ra, vì giá trị thu về đo được ngay.
+
+---
+
+---
+
+# Đường cắt dự phòng
+
+Bản chính là 17 phút. Nếu bị rút quỹ thời gian tại chỗ, cắt theo thứ tự này.
+
+## Về 13 phút
+
+| Cắt gì | Tiết kiệm |
+|---|---|
+| Slide 7 (tính năng): bỏ hẳn | 40 giây |
+| Slide 9 (quản trị): bỏ hẳn, nội dung đã nằm trong slide 4 và 8 | 45 giây |
+| Slide 14: bỏ phần mở rộng, chỉ đọc 4 hướng lộ trình | 30 giây |
+| Slide 12–13: bỏ đoạn nói từng đối thủ, chỉ nói dòng kết | 45 giây |
+| Slide 3: bỏ điểm thứ ba (khép vòng) | 30 giây |
+
+Câu thay cho đoạn đối thủ ở slide 12: *"Ba sản phẩm gần nhất, cái rẻ nhất thì không thấy Sentry, Matomo và mã nguồn, cái thấy nhiều nhất thì năm nghìn hai một tháng. Không ai đi từ hành vi khách hàng tới dòng code."*
+
+## Về 10 phút
+
+Cắt tiếp:
+
+| Cắt thêm | Tiết kiệm |
+|---|---|
+| Slide 4: bỏ điểm "hệ thống có phanh", giữ hai điểm đầu | 25 giây |
+| Slide 5: bỏ đoạn giải thích phễu, chỉ nói kết quả chi phí | 40 giây |
+| Slide 2: rút còn hai câu, vì slide 1 đã kể câu chuyện rồi | 30 giây |
+| Slide 6 (hai chế độ): rút còn ba câu | 30 giây |
+
+## Không bao giờ cắt
+
+Slide 1 (con số mở), slide 8 (dữ liệu khách hàng), slide 10 (kết quả), slide 11 (chi phí), và hai điểm đầu của slide 4 (quyền và ranh giới dữ liệu).
+
+Đây là năm chỗ hội đồng dựa vào để đánh giá. Mọi thứ khác đều co được.
+
+# Ghi chú thêm
+
+**Nếu bị hỏi cắt ngang giữa chừng**
+
+Trả lời ngắn rồi quay lại mạch. Nếu câu hỏi rơi đúng vào slide sắp tới thì nói: "Câu này em có một slide riêng, xin phép trả lời ở phần sau ạ."
+
+**Thái độ với con số**
+
+Chủ động nói cái nào là ước tính trước khi bị hỏi. Ban giám khảo tin người tự vạch ra giới hạn của mình hơn người trình bày toàn số đẹp.
+
+Đừng nói "tiết kiệm được rất nhiều". Nói "bảy trăm sáu mươi giờ, dựa trên giả định mốc thủ công sáu mươi phút".
+
+**Ba câu phải nói bằng được, dù có bị cắt thời gian thế nào**
+
+1. Một tiếng xuống ba phút, ba mươi hai xu một lần.
+2. Mô hình không bao giờ thấy dữ liệu khách hàng thật.
+3. Hoàn vốn trong tuần đầu, ROI ba mươi tám lần.
